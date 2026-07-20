@@ -259,30 +259,47 @@ class NamazService {
     int streak = 0;
     final now = DateTime.now();
     
-    // Start checking from today backwards
-    for (int i = 0; i < 365; i++) {
-      final checkDate = now.subtract(Duration(days: i));
-      if (checkDate.isBefore(startDate)) break;
+    // Check in 7-day parallel batches for maximum speed
+    for (int batch = 0; batch < 52; batch++) {
+      final List<DateTime> batchDates = [];
+      for (int i = 0; i < 7; i++) {
+        final dayIndex = batch * 7 + i;
+        final checkDate = now.subtract(Duration(days: dayIndex));
+        if (checkDate.isBefore(startDate)) break;
+        batchDates.add(checkDate);
+      }
 
-      final record = await getDayRecord(uid, checkDate);
-      bool allCompleted = true;
-      for (final prayer in ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha']) {
-        final status = record[prayer] ?? 'Upcoming';
-        // If it's today, upcoming prayers don't break the streak yet
-        if (i == 0 && status == 'Upcoming') continue;
-        if (status != 'Attended' && status != 'Qaza') {
-          allCompleted = false;
+      if (batchDates.isEmpty) break;
+
+      final batchRecords = await Future.wait(
+        batchDates.map((d) => getDayRecord(uid, d)),
+      );
+
+      bool broken = false;
+      for (int i = 0; i < batchDates.length; i++) {
+        final dayIndex = batch * 7 + i;
+        final record = batchRecords[i];
+
+        bool allCompleted = true;
+        for (final prayer in ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha']) {
+          final status = record[prayer] ?? 'Upcoming';
+          if (dayIndex == 0 && status == 'Upcoming') continue;
+          if (status != 'Attended' && status != 'Qaza') {
+            allCompleted = false;
+            break;
+          }
+        }
+
+        if (allCompleted) {
+          streak++;
+        } else {
+          if (dayIndex == 0) continue;
+          broken = true;
           break;
         }
       }
 
-      if (allCompleted) {
-        streak++;
-      } else {
-        // If we fail checking today (i == 0), the streak might still be intact from yesterday backwards
-        if (i == 0) continue;
-        break;
-      }
+      if (broken) break;
     }
     return streak;
   }

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:path_provider/path_provider.dart';
 import 'firebase_options.dart';
 import 'services/auth_service.dart';
@@ -39,7 +40,14 @@ void main() async {
     }
   }
 
-  if (!firebaseInitialized) {
+  if (firebaseInitialized) {
+    try {
+      FirebaseFirestore.instance.settings = const Settings(
+        persistenceEnabled: true,
+        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+      );
+    } catch (_) {}
+  } else {
     debugPrint('Operating in Local Sandbox Mode.');
   }
 
@@ -248,26 +256,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   Future<void> _loadUserData() async {
     if (!mounted) return;
-    setState(() {
-      _isLoadingData = true;
-    });
 
     try {
-      // 1. Force a trigger to dynamically check/update today's passed prayers
-      await _namazService.getDayRecord(widget.user.uid, DateTime.now());
+      // 1. Fetch today's record & stats summary concurrently for instant rendering
+      final results = await Future.wait([
+        _namazService.getDayRecord(widget.user.uid, DateTime.now()),
+        _namazService.getStatsSummary(widget.user.uid),
+      ]);
 
-      // 2. Load stats summary (relationshipLevel, lovePoints, moods)
-      final stats = await _namazService.getStatsSummary(widget.user.uid);
-      
-      // 3. Load last 7 days of records
-      final now = DateTime.now();
-      final Map<String, Map<String, dynamic>> last7Days = {};
-      for (int i = 1; i <= 7; i++) {
-        final date = now.subtract(Duration(days: i));
-        if (date.isBefore(NamazService.startDate)) break;
-        final record = await _namazService.getDayRecord(widget.user.uid, date);
-        last7Days[_namazService.formatDate(date)] = record;
-      }
+      final stats = results[1];
 
       if (mounted) {
         setState(() {
@@ -275,8 +272,31 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           _lovePoints = stats['lovePoints'] ?? 10;
           _alinaMood = stats['alinaMood'] ?? 'Happy 💖';
           _lastSyncTime = stats['lastSyncTime'] ?? 'Never';
+          _isLoadingData = false; // Render Main UI instantly!
+        });
+      }
+
+      // 2. Fetch last 7 days of records concurrently in the background
+      final now = DateTime.now();
+      final List<DateTime> datesToFetch = [];
+      for (int i = 1; i <= 7; i++) {
+        final date = now.subtract(Duration(days: i));
+        if (date.isBefore(NamazService.startDate)) break;
+        datesToFetch.add(date);
+      }
+
+      final dayRecords = await Future.wait(
+        datesToFetch.map((d) => _namazService.getDayRecord(widget.user.uid, d)),
+      );
+
+      final Map<String, Map<String, dynamic>> last7Days = {};
+      for (int i = 0; i < datesToFetch.length; i++) {
+        last7Days[_namazService.formatDate(datesToFetch[i])] = dayRecords[i];
+      }
+
+      if (mounted) {
+        setState(() {
           _last7DaysRecords = last7Days;
-          _isLoadingData = false;
         });
       }
     } catch (e) {
@@ -771,7 +791,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 const SizedBox(height: 12),
                 Expanded(
                   child: _last7DaysRecords.isEmpty
-                      ? const Center(child: Text('No historical logs yet.'))
+                      ? const Center(child: Text('Loading history...'))
                       : ListView.builder(
                           itemCount: _last7DaysRecords.length,
                           padding: EdgeInsets.zero,
@@ -840,8 +860,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           setState(() {
             _currentIndex = index;
           });
-          // Refresh user stats when switching tabs
-          _loadUserData();
         },
         destinations: const [
           NavigationDestination(

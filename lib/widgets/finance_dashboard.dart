@@ -56,17 +56,19 @@ class _FinanceDashboardState extends State<FinanceDashboard> {
     });
 
     try {
-      final summary = await _financeService.getMonthlySummary(widget.uid, _selectedMonthKey, zakatPercentage: _zakatPercentage);
-      final trans = await _financeService.getTransactions(widget.uid, _selectedMonthKey);
-      final debts = await _financeService.getDebts(widget.uid);
-      final recurring = await _financeService.getRecurringPayments(widget.uid);
+      final results = await Future.wait([
+        _financeService.getMonthlySummary(widget.uid, _selectedMonthKey, zakatPercentage: _zakatPercentage),
+        _financeService.getTransactions(widget.uid, _selectedMonthKey),
+        _financeService.getDebts(widget.uid),
+        _financeService.getRecurringPayments(widget.uid),
+      ]);
 
       if (mounted) {
         setState(() {
-          _summary = summary;
-          _transactions = trans;
-          _debts = debts;
-          _recurring = recurring;
+          _summary = results[0] as FinanceSummary;
+          _transactions = results[1] as List<FinanceTransaction>;
+          _debts = results[2] as List<DebtItem>;
+          _recurring = results[3] as List<RecurringPayment>;
           _isLoading = false;
         });
       }
