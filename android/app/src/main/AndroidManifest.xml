@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="Alina - Digital Wife"
+        android:label="Alina – My Digital Wife"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity
