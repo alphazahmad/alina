@@ -11,29 +11,26 @@ import 'screens/profile_screen.dart';
 import 'widgets/home_tab.dart';
 import 'widgets/islamic_hub.dart';
 import 'widgets/finance_dashboard.dart';
+import 'widgets/tasks_tab.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   bool firebaseInitialized = false;
 
-  // 1. Try native auto-initialization (google-services.json on Android)
   try {
     await Firebase.initializeApp();
     firebaseInitialized = true;
-    debugPrint('Firebase initialized via native config.');
   } catch (e) {
     debugPrint('Native Firebase init skipped: $e');
   }
 
-  // 2. Fallback: Dart options
   if (!firebaseInitialized) {
     final options = DefaultFirebaseOptions.currentPlatform;
     if (options != null) {
       try {
         await Firebase.initializeApp(options: options);
         firebaseInitialized = true;
-        debugPrint('Firebase initialized via Dart options.');
       } catch (e) {
         debugPrint('Dart Firebase options init failed: $e');
       }
@@ -100,7 +97,6 @@ class _AlinaAppState extends State<AlinaApp> {
   @override
   Widget build(BuildContext context) {
     const seed = Color(0xFFF52670);
-
     return MaterialApp(
       title: 'Alina',
       debugShowCheckedModeBanner: false,
@@ -109,17 +105,13 @@ class _AlinaAppState extends State<AlinaApp> {
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.light, primary: seed),
         scaffoldBackgroundColor: const Color(0xFFFAF0F5),
-        cardColor: Colors.white,
         appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent, elevation: 0, scrolledUnderElevation: 0),
-        fontFamily: 'Roboto',
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.dark, primary: seed),
         scaffoldBackgroundColor: const Color(0xFF0E0810),
-        cardColor: const Color(0xFF1C1020),
         appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent, elevation: 0, scrolledUnderElevation: 0),
-        fontFamily: 'Roboto',
       ),
       home: AuthGate(onChangeTheme: _changeTheme, themeMode: _themeMode),
     );
@@ -136,18 +128,13 @@ class AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authService = AuthService();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      authService.triggerInitialState();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => authService.triggerInitialState());
 
     return StreamBuilder<AuthUser?>(
       stream: authService.onAuthStateChanged,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator(color: Color(0xFFF52670))),
-          );
+          return const Scaffold(body: Center(child: CircularProgressIndicator(color: Color(0xFFF52670))));
         }
         final user = snapshot.data;
         if (user != null) {
@@ -173,7 +160,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _namazService = NamazService();
-
   int _currentIndex = 0;
 
   // Home tab data
@@ -192,6 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadUserData() async {
     if (!mounted) return;
     try {
+      // Fetch stats concurrently
       final results = await Future.wait([
         _namazService.getDayRecord(widget.user.uid, DateTime.now()),
         _namazService.getStatsSummary(widget.user.uid),
@@ -207,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       }
 
-      // Background: fetch last 7 days
+      // Background: load last 7 days
       final now = DateTime.now();
       final datesToFetch = <DateTime>[];
       for (int i = 0; i <= 6; i++) {
@@ -231,12 +218,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // ─── AppBar titles ───────────────────────────────────────────────
-  static const _titles = ['Home', 'Islamic', 'Finance', 'Profile'];
+  // ─── Titles per tab ──────────────────────────────────────────────
+  static const _titles = ['Home', 'Islamic', 'Finance', 'Tasks', 'Profile'];
   static const _titleIcons = [
     Icons.home_outlined,
     Icons.mosque_outlined,
     Icons.account_balance_wallet_outlined,
+    Icons.checklist_rounded,
     Icons.person_outline,
   ];
 
@@ -248,28 +236,24 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        leadingWidth: 0,
         leading: const SizedBox.shrink(),
+        leadingWidth: 0,
         title: Row(
           children: [
             Icon(_titleIcons[_currentIndex], color: theme.colorScheme.primary, size: 20),
             const SizedBox(width: 8),
             Text(
               _titles[_currentIndex],
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: isDark ? Colors.white : const Color(0xFF1A0010),
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: isDark ? Colors.white : const Color(0xFF1A0010)),
             ),
           ],
         ),
         actions: [
-          // Quick indicator dot
           if (_currentIndex == 0)
             Padding(
-              padding: const EdgeInsets.only(right: 16),
+              padding: const EdgeInsets.only(right: 14),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.circle, size: 8, color: AuthService().isSandboxMode ? Colors.orange : Colors.green),
                   const SizedBox(width: 4),
@@ -288,7 +272,7 @@ class _HomeScreenState extends State<HomeScreen> {
             : IndexedStack(
                 index: _currentIndex,
                 children: [
-                  // Tab 0 — Home
+                  // Tab 0 – Home
                   HomeTab(
                     uid: widget.user.uid,
                     relationshipLevel: _relationshipLevel,
@@ -298,11 +282,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     isLoading: _isLoadingData,
                     onRefresh: _loadUserData,
                   ),
-                  // Tab 1 — Islamic Hub
+                  // Tab 1 – Islamic (Namaz + Zikr + Namaz Calendar)
                   IslamicHub(uid: widget.user.uid),
-                  // Tab 2 — Finance
+                  // Tab 2 – Finance
                   FinanceDashboard(uid: widget.user.uid),
-                  // Tab 3 — Profile
+                  // Tab 3 – Tasks (To-Do + Smart Calendar)
+                  TasksTab(uid: widget.user.uid),
+                  // Tab 4 – Profile
                   ProfileScreen(
                     uid: widget.user.uid,
                     email: widget.user.email,
@@ -321,26 +307,23 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF160B12) : Colors.white,
-        border: Border(top: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.08), width: 1)),
+        border: Border(top: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.08))),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, -4),
-          ),
+          BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06), blurRadius: 16, offset: const Offset(0, -4)),
         ],
       ),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(0, Icons.home_rounded, Icons.home_outlined, 'Home', theme, isDark),
-              _buildNavItem(1, Icons.mosque_rounded, Icons.mosque_outlined, 'Islamic', theme, isDark),
-              _buildNavItem(2, Icons.account_balance_wallet_rounded, Icons.account_balance_wallet_outlined, 'Finance', theme, isDark),
-              _buildNavItem(3, Icons.person_rounded, Icons.person_outline, 'Profile', theme, isDark),
+              _navItem(0, Icons.home_rounded, Icons.home_outlined, 'Home', theme, isDark),
+              _navItem(1, Icons.mosque_rounded, Icons.mosque_outlined, 'Islamic', theme, isDark),
+              _navItem(2, Icons.account_balance_wallet_rounded, Icons.account_balance_wallet_outlined, 'Finance', theme, isDark),
+              _navItem(3, Icons.checklist_rounded, Icons.checklist_outlined, 'Tasks', theme, isDark),
+              _navItem(4, Icons.person_rounded, Icons.person_outline, 'Profile', theme, isDark),
             ],
           ),
         ),
@@ -348,37 +331,29 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData selectedIcon, IconData unselectedIcon, String label, ThemeData theme, bool isDark) {
+  Widget _navItem(int index, IconData selIcon, IconData unselIcon, String label, ThemeData theme, bool isDark) {
     final isSelected = _currentIndex == index;
-
     return GestureDetector(
       onTap: () => setState(() => _currentIndex = index),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
+        duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
-        padding: EdgeInsets.symmetric(horizontal: isSelected ? 18 : 12, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: isSelected ? 14 : 10, vertical: 7),
         decoration: BoxDecoration(
           color: isSelected ? theme.colorScheme.primary.withValues(alpha: 0.12) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(18),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              isSelected ? selectedIcon : unselectedIcon,
+              isSelected ? selIcon : unselIcon,
               color: isSelected ? theme.colorScheme.primary : (isDark ? Colors.white38 : Colors.grey.shade500),
               size: 22,
             ),
             if (isSelected) ...[
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
+              const SizedBox(width: 5),
+              Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
             ],
           ],
         ),

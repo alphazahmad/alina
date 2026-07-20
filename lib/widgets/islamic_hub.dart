@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'namaz_dashboard.dart';
 import 'zikr_dashboard.dart';
-import 'calendar_dashboard.dart';
+import 'namaz_calendar_widget.dart';
 
 class IslamicHub extends StatefulWidget {
   final String uid;
@@ -18,7 +18,7 @@ class _IslamicHubState extends State<IslamicHub> {
   final List<Map<String, dynamic>> _tabs = [
     {'label': 'Namaz', 'icon': Icons.mosque_outlined},
     {'label': 'Zikr', 'icon': Icons.radio_button_checked},
-    {'label': 'Calendar', 'icon': Icons.calendar_month_outlined},
+    {'label': 'Calendar', 'icon': Icons.calendar_today_outlined},
   ];
 
   @override
@@ -88,9 +88,14 @@ class _IslamicHubState extends State<IslamicHub> {
           child: IndexedStack(
             index: _selectedIndex,
             children: [
-              NamazDashboard(uid: widget.uid),
+              // Tab 0: Today's Namaz tracker
+              SingleChildScrollView(
+                child: NamazDashboard(uid: widget.uid),
+              ),
+              // Tab 1: Zikr Counter
               ZikrDashboard(uid: widget.uid),
-              CalendarDashboard(uid: widget.uid),
+              // Tab 2: Namaz Attendance Calendar
+              NamazCalendarWidget(uid: widget.uid),
             ],
           ),
         ),
