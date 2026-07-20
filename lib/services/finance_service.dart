@@ -173,9 +173,10 @@ class FinanceService {
   // --- Transactions Operations ---
 
   Future<List<FinanceTransaction>> getTransactions(String uid, String monthKey) async {
-    List<FinanceTransaction> list = [];
+    final all = await _loadSandboxTransactions(uid);
+    List<FinanceTransaction> list = all.where((t) => t.monthKey == monthKey).toList();
 
-    if (!isSandboxMode) {
+    if (list.isEmpty && !isSandboxMode) {
       try {
         final query = await fs.FirebaseFirestore.instance
             .collection('users')
@@ -184,6 +185,10 @@ class FinanceService {
             .where('monthKey', isEqualTo: monthKey)
             .get();
         list = query.docs.map((doc) => FinanceTransaction.fromMap(doc.data())).toList();
+        // Cache locally
+        for (final t in list) {
+          await _saveSandboxTransaction(uid, t);
+        }
       } catch (e) {
         try {
           final query = await fs.FirebaseFirestore.instance
@@ -195,9 +200,6 @@ class FinanceService {
           list = query.docs.map((doc) => FinanceTransaction.fromMap(doc.data())).toList();
         } catch (_) {}
       }
-    } else {
-      final all = await _loadSandboxTransactions(uid);
-      list = all.where((t) => t.monthKey == monthKey).toList();
     }
 
     // Sort by date descending
@@ -230,9 +232,9 @@ class FinanceService {
   // --- Debts Operations ---
 
   Future<List<DebtItem>> getDebts(String uid) async {
-    List<DebtItem> list = [];
+    List<DebtItem> list = await _loadSandboxDebts(uid);
 
-    if (!isSandboxMode) {
+    if (list.isEmpty && !isSandboxMode) {
       try {
         final query = await fs.FirebaseFirestore.instance
             .collection('users')
@@ -240,6 +242,10 @@ class FinanceService {
             .collection('finance_debts')
             .get();
         list = query.docs.map((doc) => DebtItem.fromMap(doc.data())).toList();
+        // Cache locally
+        for (final d in list) {
+          await _saveSandboxDebt(uid, d);
+        }
       } catch (e) {
         try {
           final query = await fs.FirebaseFirestore.instance
@@ -250,8 +256,6 @@ class FinanceService {
           list = query.docs.map((doc) => DebtItem.fromMap(doc.data())).toList();
         } catch (_) {}
       }
-    } else {
-      list = await _loadSandboxDebts(uid);
     }
 
     // Sort pending items first
@@ -295,9 +299,9 @@ class FinanceService {
   // --- Recurring Payments Operations ---
 
   Future<List<RecurringPayment>> getRecurringPayments(String uid) async {
-    List<RecurringPayment> list = [];
+    List<RecurringPayment> list = await _loadSandboxRecurring(uid);
 
-    if (!isSandboxMode) {
+    if (list.isEmpty && !isSandboxMode) {
       try {
         final query = await fs.FirebaseFirestore.instance
             .collection('users')
@@ -305,6 +309,10 @@ class FinanceService {
             .collection('finance_recurring')
             .get();
         list = query.docs.map((doc) => RecurringPayment.fromMap(doc.data())).toList();
+        // Cache locally
+        for (final r in list) {
+          await _saveSandboxRecurring(uid, r);
+        }
       } catch (e) {
         try {
           final query = await fs.FirebaseFirestore.instance
@@ -315,8 +323,6 @@ class FinanceService {
           list = query.docs.map((doc) => RecurringPayment.fromMap(doc.data())).toList();
         } catch (_) {}
       }
-    } else {
-      list = await _loadSandboxRecurring(uid);
     }
 
     return list;

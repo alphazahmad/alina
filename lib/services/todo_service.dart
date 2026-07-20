@@ -75,17 +75,22 @@ class TodoService {
   // ─── Firestore helpers ────────────────────────────────────────────
   Future<List<TodoItem>> getTodos(String uid) async {
     try {
-      if (!isSandboxMode) {
+      List<TodoItem> list = await _sandboxGetTodos(uid);
+
+      if (list.isEmpty && !isSandboxMode) {
         final snap = await FirebaseFirestore.instance
             .collection('users')
             .doc(uid)
             .collection('todos')
             .orderBy('createdAt', descending: true)
             .get();
-        return snap.docs.map((d) => TodoItem.fromMap(d.data())).toList();
-      } else {
-        return await _sandboxGetTodos(uid);
+        list = snap.docs.map((d) => TodoItem.fromMap(d.data())).toList();
+        // Cache them locally
+        for (final item in list) {
+          await _sandboxSaveTodo(uid, item);
+        }
       }
+      return list;
     } catch (e) {
       debugPrint('TodoService getTodos error: $e');
       return [];

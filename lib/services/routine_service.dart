@@ -128,6 +128,22 @@ class RoutineService {
   // --- CRUD Handlers ---
 
   Future<List<RoutineTask>> getUserTasks(String uid) async {
+    List<RoutineTask> localTasks = [];
+    try {
+      final file = await _getLocalFile(uid);
+      if (await file.exists()) {
+        final content = await file.readAsString();
+        final List list = jsonDecode(content);
+        localTasks = list.map((item) => RoutineTask.fromMap(item)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error loading sandbox routine tasks file: $e');
+    }
+
+    if (localTasks.isNotEmpty) {
+      return localTasks;
+    }
+
     if (_isFirebaseAvailable) {
       try {
         final snap = await FirebaseFirestore.instance
@@ -136,24 +152,19 @@ class RoutineService {
             .collection('routine_tasks')
             .get();
 
-        return snap.docs.map((doc) => RoutineTask.fromMap(doc.data())).toList();
+        final remoteTasks = snap.docs.map((doc) => RoutineTask.fromMap(doc.data())).toList();
+        // Cache locally
+        try {
+          final file = await _getLocalFile(uid);
+          await file.writeAsString(jsonEncode(remoteTasks.map((t) => t.toMap()).toList()));
+        } catch (_) {}
+        return remoteTasks;
       } catch (e) {
         debugPrint('Error loading routine tasks from Firestore: $e');
       }
     }
 
-    try {
-      final file = await _getLocalFile(uid);
-      if (await file.exists()) {
-        final content = await file.readAsString();
-        final List list = jsonDecode(content);
-        return list.map((item) => RoutineTask.fromMap(item)).toList();
-      }
-    } catch (e) {
-      debugPrint('Error loading sandbox routine tasks file: $e');
-    }
-
-    return [];
+    return localTasks;
   }
 
   Future<void> addOrUpdateTask(String uid, RoutineTask task) async {

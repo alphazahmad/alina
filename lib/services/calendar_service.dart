@@ -124,6 +124,22 @@ class CalendarService {
   // --- CRUD Operations ---
 
   Future<List<CalendarEvent>> getUserEvents(String uid) async {
+    List<CalendarEvent> localEvents = [];
+    try {
+      final file = await _getLocalFile(uid);
+      if (await file.exists()) {
+        final content = await file.readAsString();
+        final List list = jsonDecode(content);
+        localEvents = list.map((item) => CalendarEvent.fromMap(item)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error loading sandbox calendar file: $e');
+    }
+
+    if (localEvents.isNotEmpty) {
+      return localEvents;
+    }
+
     if (_isFirebaseAvailable) {
       try {
         final snap = await FirebaseFirestore.instance
@@ -132,25 +148,19 @@ class CalendarService {
             .collection('calendar_events')
             .get();
 
-        return snap.docs.map((doc) => CalendarEvent.fromMap(doc.data())).toList();
+        final remoteEvents = snap.docs.map((doc) => CalendarEvent.fromMap(doc.data())).toList();
+        // Cache locally
+        try {
+          final file = await _getLocalFile(uid);
+          await file.writeAsString(jsonEncode(remoteEvents.map((e) => e.toMap()).toList()));
+        } catch (_) {}
+        return remoteEvents;
       } catch (e) {
         debugPrint('Error loading events from Firestore: $e');
       }
     }
 
-    // Local Sandbox Fallback
-    try {
-      final file = await _getLocalFile(uid);
-      if (await file.exists()) {
-        final content = await file.readAsString();
-        final List list = jsonDecode(content);
-        return list.map((item) => CalendarEvent.fromMap(item)).toList();
-      }
-    } catch (e) {
-      debugPrint('Error loading sandbox calendar file: $e');
-    }
-
-    return [];
+    return localEvents;
   }
 
   Future<void> addOrUpdateEvent(String uid, CalendarEvent event) async {

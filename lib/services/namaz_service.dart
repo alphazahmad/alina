@@ -60,9 +60,9 @@ class NamazService {
   /// Loads the record for a specific day.
   Future<Map<String, dynamic>> getDayRecord(String uid, DateTime date) async {
     final dateStr = formatDate(date);
-    Map<String, dynamic>? data;
+    Map<String, dynamic>? data = await _loadSandboxDayRecord(uid, dateStr);
 
-    if (!isSandboxMode) {
+    if (data == null && !isSandboxMode) {
       try {
         final doc = await fs.FirebaseFirestore.instance
             .collection('users')
@@ -72,6 +72,9 @@ class NamazService {
             .get();
         if (doc.exists) {
           data = doc.data();
+          if (data != null) {
+            await _saveSandboxDayRecord(uid, dateStr, data);
+          }
         }
       } catch (e) {
         // Fallback to cache if offline
@@ -87,8 +90,6 @@ class NamazService {
           }
         } catch (_) {}
       }
-    } else {
-      data = await _loadSandboxDayRecord(uid, dateStr);
     }
 
     if (data == null) {
@@ -142,9 +143,9 @@ class NamazService {
 
   /// Loads the lifetime stats summary.
   Future<Map<String, dynamic>> getStatsSummary(String uid) async {
-    Map<String, dynamic>? data;
+    Map<String, dynamic>? data = await _loadSandboxStatsSummary(uid);
 
-    if (!isSandboxMode) {
+    if (data == null && !isSandboxMode) {
       try {
         final doc = await fs.FirebaseFirestore.instance
             .collection('users')
@@ -154,6 +155,9 @@ class NamazService {
             .get();
         if (doc.exists) {
           data = doc.data();
+          if (data != null) {
+            await _saveSandboxStatsSummary(uid, data);
+          }
         }
       } catch (e) {
         try {
@@ -168,8 +172,6 @@ class NamazService {
           }
         } catch (_) {}
       }
-    } else {
-      data = await _loadSandboxStatsSummary(uid);
     }
 
     if (data == null) {

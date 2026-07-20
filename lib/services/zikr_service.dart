@@ -129,9 +129,9 @@ class ZikrService {
 
   /// Get list of all counters for a user (capped at 10)
   Future<List<ZikrCounter>> getCounters(String uid) async {
-    List<ZikrCounter> list = [];
+    List<ZikrCounter> list = await _loadSandboxCounters(uid);
 
-    if (!isSandboxMode) {
+    if (list.isEmpty && !isSandboxMode) {
       try {
         final query = await fs.FirebaseFirestore.instance
             .collection('users')
@@ -139,6 +139,10 @@ class ZikrService {
             .collection('counters')
             .get();
         list = query.docs.map((doc) => ZikrCounter.fromMap(doc.data())).toList();
+        // Cache them locally
+        for (final c in list) {
+          await _saveSandboxCounter(uid, c);
+        }
       } catch (e) {
         try {
           final query = await fs.FirebaseFirestore.instance
@@ -149,8 +153,6 @@ class ZikrService {
           list = query.docs.map((doc) => ZikrCounter.fromMap(doc.data())).toList();
         } catch (_) {}
       }
-    } else {
-      list = await _loadSandboxCounters(uid);
     }
 
     // Perform lazy resets and sort: Pinned first, then by name
@@ -233,7 +235,9 @@ class ZikrService {
 
   /// Retrieve archived monthly history docs
   Future<Map<String, dynamic>?> getMonthlyHistory(String uid, String counterId, String monthKey) async {
-    if (!isSandboxMode) {
+    Map<String, dynamic>? data = await _loadSandboxHistory(uid, counterId, monthKey);
+
+    if (data == null && !isSandboxMode) {
       try {
         final doc = await fs.FirebaseFirestore.instance
             .collection('users')
@@ -244,13 +248,14 @@ class ZikrService {
             .doc(monthKey)
             .get();
         if (doc.exists) {
-          return doc.data();
+          data = doc.data();
+          if (data != null) {
+            await _saveSandboxHistory(uid, counterId, monthKey, data);
+          }
         }
       } catch (_) {}
-    } else {
-      return await _loadSandboxHistory(uid, counterId, monthKey);
     }
-    return null;
+    return data;
   }
 
   /// Save archived historical month logs
