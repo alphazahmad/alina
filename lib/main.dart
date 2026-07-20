@@ -4,6 +4,7 @@ import 'firebase_options.dart';
 import 'services/auth_service.dart';
 import 'services/sync_service.dart';
 import 'screens/login_screen.dart';
+import 'widgets/namaz_dashboard.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -738,6 +739,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       ),
                     ),
                   ),
+                  NamazDashboard(uid: widget.user.uid),
                   
                   // Conversation Screen
                   Expanded(
