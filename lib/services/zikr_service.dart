@@ -169,15 +169,18 @@ class ZikrService {
 
   /// Save or update a counter
   Future<void> saveCounter(String uid, ZikrCounter counter) async {
+    // Always save locally first
+    await _saveSandboxCounter(uid, counter);
+
+    // Also push to Firebase in background if connected
     if (!isSandboxMode) {
-      await fs.FirebaseFirestore.instance
+      fs.FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
           .collection('counters')
           .doc(counter.id)
-          .set(counter.toMap());
-    } else {
-      await _saveSandboxCounter(uid, counter);
+          .set(counter.toMap())
+          .catchError((e) => debugPrint('Zikr counter Firebase sync error: $e'));
     }
   }
 
@@ -206,27 +209,25 @@ class ZikrService {
 
   /// Delete a counter
   Future<void> deleteCounter(String uid, String counterId) async {
+    // Always delete locally first
+    await _deleteSandboxCounter(uid, counterId);
+
+    // Also delete from Firebase if connected
     if (!isSandboxMode) {
-      await fs.FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .collection('counters')
-          .doc(counterId)
-          .delete();
-      
-      // Clean up history collection documents
-      final historyQuery = await fs.FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .collection('counters')
-          .doc(counterId)
-          .collection('history')
-          .get();
-      for (final doc in historyQuery.docs) {
-        await doc.reference.delete();
+      try {
+        final docRef = fs.FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .collection('counters')
+            .doc(counterId);
+        await docRef.delete();
+        final historyQuery = await docRef.collection('history').get();
+        for (final doc in historyQuery.docs) {
+          await doc.reference.delete();
+        }
+      } catch (e) {
+        debugPrint('Zikr delete Firebase sync error: $e');
       }
-    } else {
-      await _deleteSandboxCounter(uid, counterId);
     }
   }
 
@@ -260,17 +261,20 @@ class ZikrService {
       'dailyLogs': dailyLogs,
     };
 
+    // Always save locally
+    await _saveSandboxHistory(uid, counterId, monthKey, historyData);
+
+    // Also push to Firebase in background if connected
     if (!isSandboxMode) {
-      await fs.FirebaseFirestore.instance
+      fs.FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
           .collection('counters')
           .doc(counterId)
           .collection('history')
           .doc(monthKey)
-          .set(historyData);
-    } else {
-      await _saveSandboxHistory(uid, counterId, monthKey, historyData);
+          .set(historyData)
+          .catchError((e) => debugPrint('Zikr history Firebase sync error: $e'));
     }
   }
 

@@ -206,28 +206,24 @@ class FinanceService {
   }
 
   Future<void> addTransaction(String uid, FinanceTransaction transaction) async {
+    await _saveSandboxTransaction(uid, transaction);
     if (!isSandboxMode) {
-      await fs.FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .collection('finance_transactions')
-          .doc(transaction.id)
-          .set(transaction.toMap());
-    } else {
-      await _saveSandboxTransaction(uid, transaction);
+      fs.FirebaseFirestore.instance
+          .collection('users').doc(uid)
+          .collection('finance_transactions').doc(transaction.id)
+          .set(transaction.toMap())
+          .catchError((e) => debugPrint('Finance tx Firebase sync error: $e'));
     }
   }
 
   Future<void> deleteTransaction(String uid, String id) async {
+    await _deleteSandboxTransaction(uid, id);
     if (!isSandboxMode) {
-      await fs.FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .collection('finance_transactions')
-          .doc(id)
-          .delete();
-    } else {
-      await _deleteSandboxTransaction(uid, id);
+      fs.FirebaseFirestore.instance
+          .collection('users').doc(uid)
+          .collection('finance_transactions').doc(id)
+          .delete()
+          .catchError((e) => debugPrint('Finance tx delete Firebase sync error: $e'));
     }
   }
 
@@ -270,15 +266,13 @@ class FinanceService {
   }
 
   Future<void> addDebt(String uid, DebtItem debt) async {
+    await _saveSandboxDebt(uid, debt);
     if (!isSandboxMode) {
-      await fs.FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .collection('finance_debts')
-          .doc(debt.id)
-          .set(debt.toMap());
-    } else {
-      await _saveSandboxDebt(uid, debt);
+      fs.FirebaseFirestore.instance
+          .collection('users').doc(uid)
+          .collection('finance_debts').doc(debt.id)
+          .set(debt.toMap())
+          .catchError((e) => debugPrint('Finance debt Firebase sync error: $e'));
     }
   }
 
@@ -288,15 +282,13 @@ class FinanceService {
   }
 
   Future<void> deleteDebt(String uid, String id) async {
+    await _deleteSandboxDebt(uid, id);
     if (!isSandboxMode) {
-      await fs.FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .collection('finance_debts')
-          .doc(id)
-          .delete();
-    } else {
-      await _deleteSandboxDebt(uid, id);
+      fs.FirebaseFirestore.instance
+          .collection('users').doc(uid)
+          .collection('finance_debts').doc(id)
+          .delete()
+          .catchError((e) => debugPrint('Finance debt delete Firebase sync error: $e'));
     }
   }
 
@@ -331,15 +323,13 @@ class FinanceService {
   }
 
   Future<void> addRecurringPayment(String uid, RecurringPayment payment) async {
+    await _saveSandboxRecurring(uid, payment);
     if (!isSandboxMode) {
-      await fs.FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .collection('finance_recurring')
-          .doc(payment.id)
-          .set(payment.toMap());
-    } else {
-      await _saveSandboxRecurring(uid, payment);
+      fs.FirebaseFirestore.instance
+          .collection('users').doc(uid)
+          .collection('finance_recurring').doc(payment.id)
+          .set(payment.toMap())
+          .catchError((e) => debugPrint('Finance recurring Firebase sync error: $e'));
     }
   }
 
@@ -349,15 +339,13 @@ class FinanceService {
   }
 
   Future<void> deleteRecurringPayment(String uid, String id) async {
+    await _deleteSandboxRecurring(uid, id);
     if (!isSandboxMode) {
-      await fs.FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .collection('finance_recurring')
-          .doc(id)
-          .delete();
-    } else {
-      await _deleteSandboxRecurring(uid, id);
+      fs.FirebaseFirestore.instance
+          .collection('users').doc(uid)
+          .collection('finance_recurring').doc(id)
+          .delete()
+          .catchError((e) => debugPrint('Finance recurring delete Firebase sync error: $e'));
     }
   }
 

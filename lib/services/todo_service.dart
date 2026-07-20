@@ -93,19 +93,18 @@ class TodoService {
   }
 
   Future<void> addTodo(String uid, TodoItem item) async {
-    try {
-      if (!isSandboxMode) {
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(uid)
-            .collection('todos')
-            .doc(item.id)
-            .set(item.toMap());
-      } else {
-        await _sandboxSaveTodo(uid, item);
-      }
-    } catch (e) {
-      debugPrint('TodoService addTodo error: $e');
+    // Always save locally first
+    await _sandboxSaveTodo(uid, item);
+
+    // Also push to Firebase in background if connected
+    if (!isSandboxMode) {
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .collection('todos')
+          .doc(item.id)
+          .set(item.toMap())
+          .catchError((e) => debugPrint('Todo Firebase sync error: $e'));
     }
   }
 
@@ -115,19 +114,18 @@ class TodoService {
   }
 
   Future<void> deleteTodo(String uid, String id) async {
-    try {
-      if (!isSandboxMode) {
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(uid)
-            .collection('todos')
-            .doc(id)
-            .delete();
-      } else {
-        await _sandboxDeleteTodo(uid, id);
-      }
-    } catch (e) {
-      debugPrint('TodoService deleteTodo error: $e');
+    // Always delete locally first
+    await _sandboxDeleteTodo(uid, id);
+
+    // Also delete from Firebase if connected
+    if (!isSandboxMode) {
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .collection('todos')
+          .doc(id)
+          .delete()
+          .catchError((e) => debugPrint('Todo delete Firebase sync error: $e'));
     }
   }
 

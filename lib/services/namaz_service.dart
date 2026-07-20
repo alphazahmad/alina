@@ -120,16 +120,18 @@ class NamazService {
     // 1. Get old record to compute delta for stats
     final oldRecord = await getDayRecord(uid, date);
     
-    // 2. Save new record
+    // 2. Always save locally first (offline-first)
+    await _saveSandboxDayRecord(uid, dateStr, newRecord);
+
+    // Also push to Firebase in background if connected
     if (!isSandboxMode) {
-      await fs.FirebaseFirestore.instance
+      fs.FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
           .collection('namaz')
           .doc(dateStr)
-          .set(newRecord);
-    } else {
-      await _saveSandboxDayRecord(uid, dateStr, newRecord);
+          .set(newRecord)
+          .catchError((e) => debugPrint('Namaz Firebase sync error: $e'));
     }
 
     // 3. Compute stats delta and update summary (skip delta math if it's just an automated background update)
@@ -305,15 +307,18 @@ class NamazService {
   }
 
   Future<void> _saveStatsSummary(String uid, Map<String, dynamic> summary) async {
+    // Always save locally
+    await _saveSandboxStatsSummary(uid, summary);
+
+    // Also push to Firebase in background if connected
     if (!isSandboxMode) {
-      await fs.FirebaseFirestore.instance
+      fs.FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
           .collection('namaz_stats')
           .doc('summary')
-          .set(summary);
-    } else {
-      await _saveSandboxStatsSummary(uid, summary);
+          .set(summary)
+          .catchError((e) => debugPrint('NamazStats Firebase sync error: $e'));
     }
   }
 

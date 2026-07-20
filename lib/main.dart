@@ -12,6 +12,7 @@ import 'widgets/home_tab.dart';
 import 'widgets/islamic_hub.dart';
 import 'widgets/finance_dashboard.dart';
 import 'widgets/tasks_tab.dart';
+import 'services/sync_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -173,6 +174,15 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadUserData();
+    _triggerAutoSync();
+  }
+
+  void _triggerAutoSync() {
+    SyncManager().syncAll(widget.user.uid).then((result) {
+      debugPrint('Startup auto-sync completed: ${result.message}');
+    }).catchError((e) {
+      debugPrint('Startup auto-sync error: $e');
+    });
   }
 
   Future<void> _loadUserData() async {

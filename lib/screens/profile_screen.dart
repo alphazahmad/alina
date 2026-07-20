@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:path_provider/path_provider.dart';
 import '../services/auth_service.dart';
+import '../services/sync_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String uid;
@@ -27,6 +28,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final _authService = AuthService();
+  final _syncManager = SyncManager();
 
   final _nameController = TextEditingController();
   final _dobController = TextEditingController();
@@ -35,15 +37,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   bool _isSaving = false;
   bool _isLoading = true;
+  bool _isSyncing = false;
+  String _syncStatus = '';
+  String _lastSyncTime = 'Never';
 
   @override
   void initState() {
     super.initState();
     _loadProfile();
+    // Load last sync time and listen to sync updates
+    _syncManager.init().then((_) {
+      if (mounted) {
+        setState(() {
+          _lastSyncTime = _syncManager.lastSyncTime;
+          _syncStatus = _syncManager.syncStatus;
+        });
+      }
+    });
+    _syncManager.addListener(_onSyncUpdate);
+  }
+
+  void _onSyncUpdate() {
+    if (mounted) {
+      setState(() {
+        _isSyncing = _syncManager.isSyncing;
+        _syncStatus = _syncManager.syncStatus;
+        _lastSyncTime = _syncManager.lastSyncTime;
+      });
+    }
   }
 
   @override
   void dispose() {
+    _syncManager.removeListener(_onSyncUpdate);
     _nameController.dispose();
     _dobController.dispose();
     _cityController.dispose();
@@ -98,17 +124,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'bio': _bioController.text.trim(),
         'updatedAt': DateTime.now().toIso8601String(),
       };
+      // Always save locally first
+      final file = await _sandboxProfileFile();
+      await file.writeAsString(jsonEncode(data));
 
+      // Also push to Firebase if connected
       if (!widget.isSandboxMode) {
-        await FirebaseFirestore.instance
+        FirebaseFirestore.instance
             .collection('users')
             .doc(widget.uid)
             .collection('profile')
             .doc('info')
-            .set(data, SetOptions(merge: true));
-      } else {
-        final file = await _sandboxProfileFile();
-        await file.writeAsString(jsonEncode(data));
+            .set(data, SetOptions(merge: true))
+            .catchError((e) => debugPrint('Profile Firebase sync error: $e'));
       }
 
       if (mounted) {
@@ -129,6 +157,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  Future<void> _syncNow() async {
+    if (_isSyncing) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await _syncManager.syncAll(widget.uid);
+    if (mounted) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: result.failed == 0 ? Colors.green : Colors.orange,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
     }
   }
 
@@ -271,6 +315,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildThemeOption(ThemeMode.dark, Icons.dark_mode, 'Dark', theme, isDark),
                     const SizedBox(width: 8),
                     _buildThemeOption(ThemeMode.system, Icons.phone_android, 'System', theme, isDark),
+                  ],
+                ),
+              ]),
+              const SizedBox(height: 24),
+
+              // ─── Cloud Sync ───────────────────────────────────────
+              _buildSectionHeader('Cloud Backup & Sync', Icons.cloud_sync_outlined, theme),
+              const SizedBox(height: 12),
+              _buildCard(isDark, theme, [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.isSandboxMode ? 'Local Sandbox Mode' : 'Cloud Sync Connected',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: widget.isSandboxMode ? Colors.orange : Colors.green,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Last Synced: $_lastSyncTime',
+                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                          ),
+                          if (_syncStatus.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              _syncStatus,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontStyle: FontStyle.italic,
+                                color: theme.colorScheme.primary.withValues(alpha: 0.8),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton.icon(
+                      onPressed: _isSyncing ? null : _syncNow,
+                      icon: _isSyncing
+                          ? const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : const Icon(Icons.sync_rounded, size: 16),
+                      label: Text(_isSyncing ? 'Syncing…' : 'Sync Now'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: theme.colorScheme.primary.withValues(alpha: 0.5),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
                   ],
                 ),
               ]),
