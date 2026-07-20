@@ -11,6 +11,7 @@ import 'widgets/namaz_dashboard.dart';
 import 'widgets/zikr_dashboard.dart';
 import 'widgets/finance_dashboard.dart';
 import 'widgets/calendar_dashboard.dart';
+import 'widgets/routine_dashboard.dart';
 import 'screens/namaz_history_sheet.dart';
 
 void main() async {
@@ -826,7 +827,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   ? 'Zikr Recitations'
                   : _currentIndex == 2
                       ? 'Financial Management'
-                      : 'Smart Calendar',
+                      : _currentIndex == 3
+                          ? 'Smart Calendar'
+                          : 'Weekly Timetable',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: theme.colorScheme.primary,
@@ -855,6 +858,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   ZikrDashboard(uid: widget.user.uid),
                   FinanceDashboard(uid: widget.user.uid),
                   CalendarDashboard(uid: widget.user.uid),
+                  RoutineDashboard(uid: widget.user.uid),
                 ],
               ),
       ),
@@ -885,6 +889,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             icon: Icon(Icons.calendar_month_outlined),
             selectedIcon: Icon(Icons.calendar_month),
             label: 'Calendar',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.schedule_outlined),
+            selectedIcon: Icon(Icons.schedule),
+            label: 'Routine',
           ),
         ],
       ),
