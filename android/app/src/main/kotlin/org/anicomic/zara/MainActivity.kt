@@ -1,4 +1,4 @@
-package com.example.digital_wife
+package org.anicomic.zara
 
 import io.flutter.embedding.android.FlutterActivity
 
