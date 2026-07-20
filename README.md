@@ -5,13 +5,13 @@
 [![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
 [![Material 3](https://img.shields.io/badge/Material_3-757575?style=for-the-badge&logo=materialdesign&logoColor=white)](https://m3.material.io/)
 
-> **Alina** ek AI-powered Digital Wife aur Personal Assistant app hai jo daily life ko organize, productive aur meaningful banane ke liye design ki gayi hai. Ye sirf ek app nahi, balki ek intelligent companion hai jo planning, reminders, goals, habits, spiritual growth, financial management aur calendar scheduling me help karti hai. Alina motivate karti hai, accountable rakhti hai aur har din ek better version banne ki journey me mera saath deti hai.
+> **Alina** ek AI-powered Digital Wife aur Personal Assistant app hai jo daily life ko organize, productive aur meaningful banane ke liye design ki gayi hai. Ye sirf ek app nahi, balki ek intelligent companion hai jo planning, reminders, goals, habits, spiritual growth, financial management, calendar scheduling aur weekly routine planning me help karti hai. Alina motivate karti hai, accountable rakhti hai aur har din ek better version banne ki journey me mera saath deti hai.
 
 ---
 
 ## 🚀 App Architecture & Process Flow
 
-Below is the complete process flow and system architecture showing how Alina initializes, handles offline/online fallback modes, manages authentication, and routes into the four main functional modules:
+Below is the complete process flow and system architecture showing how Alina initializes, handles offline/online fallback modes, manages authentication, and routes into the five main functional modules:
 
 ```mermaid
 flowchart TD
@@ -32,6 +32,7 @@ flowchart TD
         G --> Tab2["📿 Tab 2: Zikr & Counter Tracker"]
         G --> Tab3["💰 Tab 3: Monthly Financial Management"]
         G --> Tab4["📅 Tab 4: Smart Calendar"]
+        G --> Tab5["⏰ Tab 5: Weekly Timetable & Routine"]
     end
     
     subgraph Tab1Details ["Companion & Namaz Details"]
@@ -66,10 +67,19 @@ flowchart TD
         Tab4 --> T4_5["Cross-Module Namaz & Finance Integration"]
     end
     
+    subgraph Tab5Details ["Weekly Timetable Details"]
+        Tab5 --> T5_1["7-Day Weekday Switcher Bar"]
+        Tab5 --> T5_2["Daily Productivity Progress Ring"]
+        Tab5 --> T5_3["Auto Namaz & Calendar Integration"]
+        Tab5 --> T5_4["Recurrence Rules: Daily/Weekdays/Weekends"]
+        Tab5 --> T5_5["High/Medium/Low Priority Highlighting"]
+    end
+    
     Tab1Details --> H[(☁️ Firestore / 📁 Sandbox Sync)]
     Tab2Details --> H
     Tab3Details --> H
     Tab4Details --> H
+    Tab5Details --> H
 ```
 
 ---
@@ -111,6 +121,14 @@ flowchart TD
 - **Cross-Module Integration:** Automatically pulls and renders Namaz status logs and Financial transactions for any selected date in the daily agenda timeline.
 - **Priority & Color Labels:** Filter events with search query inputs, High/Medium/Low priority chips, and color tags.
 
+### ⏰ Feature 6 – Weekly Timetable & Smart Routine Planner
+- **7-Day Timetable Switcher Bar:** Easily toggle between Monday and Sunday to inspect or manage daily schedules.
+- **Automatic Namaz Timings Integration:** 5 daily Namaz times calculated for the user's location automatically insert themselves into the day's timetable.
+- **Automatic Calendar Integration:** Scheduled meetings, appointments, and events from the Smart Calendar auto-populate into the daily schedule without duplicate data entry.
+- **Recurrence Engine:** Create tasks with Daily, Weekdays Only, Weekends Only, or Custom day-of-week repeat rules.
+- **Daily Productivity Analytics:** Dynamic completion percentage progress bar tracks task completion per day.
+- **Priority System & Category Filters:** High priority items highlight in red, with quick filter chips (`All`, `Work`, `Personal`, `Spiritual`, `Health`, `High Priority`).
+
 ---
 
 ## 🛠️ Project Structure
@@ -126,7 +144,8 @@ lib/
 │   ├── namaz_history_sheet.dart  # Namaz Lifetime History & Date Picker
 │   ├── zikr_detail_sheet.dart    # Zikr Counter Stats & Monthly Calendar Grid
 │   ├── add_transaction_sheet.dart # Add Financial Record (Transactions/Debts/Recurring)
-│   └── add_event_sheet.dart      # Add Calendar Event (Temporary/Recurring)
+│   ├── add_event_sheet.dart      # Add Calendar Event (Temporary/Recurring)
+│   └── add_routine_sheet.dart    # Add Routine Task (Times/Recurrence/Priority)
 ├── services/
 │   ├── auth_service.dart         # Firebase & Local Sandbox Auth Gateway
 │   ├── sync_service.dart         # Cloud Firestore & Sandbox JSON Writeback
@@ -134,12 +153,14 @@ lib/
 │   ├── namaz_service.dart        # Namaz Logging, Lifetime Counters & Streaks
 │   ├── zikr_service.dart         # Zikr Counter CRUD, Lazy Resets & Archives
 │   ├── finance_service.dart      # Financial Math, Transactions, Debts & Zakat Calculator
-│   └── calendar_service.dart     # Calendar Events, Holidays & Hijri Calculations
+│   ├── calendar_service.dart     # Calendar Events, Holidays & Hijri Calculations
+│   └── routine_service.dart      # Routine Recurrence Engine & Unified Timetable Aggregator
 └── widgets/
     ├── namaz_dashboard.dart      # Today's Namaz Status Bar & Hijri Date Header
     ├── zikr_dashboard.dart       # Zikr Counters Feed, Pin Manager & Add Dialog
     ├── finance_dashboard.dart    # Net Balance Card, Income/Expense Tiles & Sub-tabs
-    └── calendar_dashboard.dart   # Month/Year/Agenda Grid, Event Search & Cross-Module Timeline
+    ├── calendar_dashboard.dart   # Month/Year/Agenda Grid, Event Search & Cross-Module Timeline
+    └── routine_dashboard.dart    # 7-Day Timetable Switcher, Daily Productivity % & Schedule Feed
 ```
 
 ---
@@ -173,4 +194,4 @@ lib/
 
 - **Package Name:** `org.anicomic.zara`
 - **Minimum Android SDK:** `minSdk = 23`
-- **Total Storage Footprint (10 Years):** ~11–32 MB (approximately **1%–3.2%** of Firebase free 1 GB tier).
+- **Total Storage Footprint (10 Years):** ~14–40 MB (approximately **1.5%–4%** of Firebase free 1 GB tier).
