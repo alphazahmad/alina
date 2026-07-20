@@ -148,7 +148,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       height: MediaQuery.of(context).size.height * 0.85,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1016) : Colors.white,
+        color: isDark ? const Color(0xFF121212) : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
@@ -285,7 +285,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
               prefixIcon: Icon(Icons.category),
               border: OutlineInputBorder(),
             ),
-            dropdownColor: isDark ? const Color(0xFF1E1016) : Colors.white,
+            dropdownColor: isDark ? const Color(0xFF121212) : Colors.white,
             items: FinanceService.categories.map((c) {
               return DropdownMenuItem(value: c, child: Text(c));
             }).toList(),
@@ -409,7 +409,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
               prefixIcon: Icon(Icons.category),
               border: OutlineInputBorder(),
             ),
-            dropdownColor: isDark ? const Color(0xFF1E1016) : Colors.white,
+            dropdownColor: isDark ? const Color(0xFF121212) : Colors.white,
             items: FinanceService.categories.map((c) {
               return DropdownMenuItem(value: c, child: Text(c));
             }).toList(),

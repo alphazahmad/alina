@@ -293,7 +293,7 @@ class _ZikrDetailSheetState extends State<ZikrDetailSheet> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.9,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1016) : Colors.white,
+        color: isDark ? const Color(0xFF121212) : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
@@ -395,13 +395,13 @@ class _ZikrDetailSheetState extends State<ZikrDetailSheet> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF2C1A23) : Colors.grey.shade100,
+                          color: isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade100,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: DropdownButton<String>(
                           value: _selectedMonthKey,
                           underline: const SizedBox(),
-                          dropdownColor: isDark ? const Color(0xFF1E1016) : Colors.white,
+                          dropdownColor: isDark ? const Color(0xFF121212) : Colors.white,
                           onChanged: (newMonthKey) {
                             if (newMonthKey != null) {
                               _loadHistory(newMonthKey);
@@ -429,7 +429,7 @@ class _ZikrDetailSheetState extends State<ZikrDetailSheet> {
                       : Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF2C1A23) : Colors.grey.shade50,
+                            color: isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade50,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.05)),
                           ),
@@ -569,7 +569,7 @@ class _ZikrDetailSheetState extends State<ZikrDetailSheet> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2C1A23) : Colors.white,
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color.withValues(alpha: 0.15)),
         boxShadow: [

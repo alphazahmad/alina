@@ -129,7 +129,7 @@ class _NamazHistorySheetState extends State<NamazHistorySheet> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.9,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1016) : Colors.white,
+        color: isDark ? const Color(0xFF121212) : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
@@ -251,9 +251,9 @@ class _NamazHistorySheetState extends State<NamazHistorySheet> {
                             // Attendance bar
                             Container(
                               padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF2C1A23) : Colors.grey.shade50,
-                                borderRadius: BorderRadius.circular(16),
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade50,
+                                  borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                   color: theme.colorScheme.primary.withValues(alpha: 0.1),
                                 ),
@@ -307,13 +307,13 @@ class _NamazHistorySheetState extends State<NamazHistorySheet> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF2C1A23) : Colors.grey.shade100,
+                          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: DropdownButton<String>(
                           value: _prayerTimeService.currentCity.name,
                           underline: const SizedBox(),
-                          dropdownColor: isDark ? const Color(0xFF1E1016) : Colors.white,
+                          dropdownColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                           onChanged: (newCity) {
                             if (newCity != null) {
                               setState(() {
@@ -335,40 +335,47 @@ class _NamazHistorySheetState extends State<NamazHistorySheet> {
                   const Divider(height: 32),
                   
                   // Date Picker Selector
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Tracking Record Date',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _getFormattedDateLabel(_selectedDate),
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.bold,
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Tracking Record Date',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _getFormattedDateLabel(_selectedDate),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: _pickDate,
+                          icon: const Icon(Icons.calendar_today, size: 16),
+                          label: const Text('Change Date', style: TextStyle(fontSize: 13)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.colorScheme.primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                        ],
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: _pickDate,
-                        icon: const Icon(Icons.calendar_today, size: 16),
-                        label: const Text('Change Date', style: TextStyle(fontSize: 13)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.colorScheme.primary,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   
                   const SizedBox(height: 16),
@@ -388,9 +395,9 @@ class _NamazHistorySheetState extends State<NamazHistorySheet> {
                             
                             return Container(
                               padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF2C1A23) : Colors.white,
-                                borderRadius: BorderRadius.circular(20),
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.02),
@@ -455,7 +462,7 @@ class _NamazHistorySheetState extends State<NamazHistorySheet> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2C1A23) : Colors.white,
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: color.withValues(alpha: 0.15),

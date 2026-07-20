@@ -105,13 +105,13 @@ class _AlinaAppState extends State<AlinaApp> {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.light, primary: seed),
-        scaffoldBackgroundColor: const Color(0xFFFAF0F5),
+        scaffoldBackgroundColor: Colors.white,
         appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent, elevation: 0, scrolledUnderElevation: 0),
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.dark, primary: seed),
-        scaffoldBackgroundColor: const Color(0xFF0E0810),
+        scaffoldBackgroundColor: Colors.black,
         appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent, elevation: 0, scrolledUnderElevation: 0),
       ),
       home: AuthGate(onChangeTheme: _changeTheme, themeMode: _themeMode),
@@ -316,7 +316,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildNavBar(ThemeData theme, bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF160B12) : Colors.white,
+        color: isDark ? Colors.black : Colors.white,
         border: Border(top: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.08))),
         boxShadow: [
           BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06), blurRadius: 16, offset: const Offset(0, -4)),

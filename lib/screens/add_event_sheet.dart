@@ -143,7 +143,7 @@ class _AddEventSheetState extends State<AddEventSheet> {
       height: MediaQuery.of(context).size.height * 0.88,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1016) : Colors.white,
+        color: isDark ? const Color(0xFF121212) : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
@@ -229,7 +229,7 @@ class _AddEventSheetState extends State<AddEventSheet> {
                             prefixIcon: Icon(Icons.category),
                             border: OutlineInputBorder(),
                           ),
-                          dropdownColor: isDark ? const Color(0xFF1E1016) : Colors.white,
+                          dropdownColor: isDark ? const Color(0xFF121212) : Colors.white,
                           items: CalendarService.categories.map((c) {
                             return DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 12)));
                           }).toList(),
@@ -247,7 +247,7 @@ class _AddEventSheetState extends State<AddEventSheet> {
                             prefixIcon: Icon(Icons.flag),
                             border: OutlineInputBorder(),
                           ),
-                          dropdownColor: isDark ? const Color(0xFF1E1016) : Colors.white,
+                          dropdownColor: isDark ? const Color(0xFF121212) : Colors.white,
                           items: CalendarService.priorities.map((p) {
                             return DropdownMenuItem(value: p, child: Text(p, style: const TextStyle(fontSize: 12)));
                           }).toList(),
@@ -308,7 +308,7 @@ class _AddEventSheetState extends State<AddEventSheet> {
                       prefixIcon: Icon(Icons.notifications_active),
                       border: OutlineInputBorder(),
                     ),
-                    dropdownColor: isDark ? const Color(0xFF1E1016) : Colors.white,
+                    dropdownColor: isDark ? const Color(0xFF121212) : Colors.white,
                     items: CalendarService.reminderOptions.map((r) {
                       return DropdownMenuItem(value: r, child: Text(r));
                     }).toList(),

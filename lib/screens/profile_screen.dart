@@ -442,7 +442,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1C1020) : Colors.white,
+        color: isDark ? const Color(0xFF121212) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.08)),
       ),
@@ -482,7 +482,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.colorScheme.primary)),
       ),
-      dropdownColor: isDark ? const Color(0xFF1C1020) : Colors.white,
+      dropdownColor: isDark ? const Color(0xFF121212) : Colors.white,
       items: cities.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
       onChanged: (val) {
         if (val != null) _cityController.text = val;

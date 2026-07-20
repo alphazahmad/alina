@@ -115,7 +115,7 @@ class _RoutineDashboardState extends State<RoutineDashboard> {
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF22131A) : Colors.white,
+                      color: isDark ? const Color(0xFF121212) : Colors.white,
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
@@ -158,7 +158,7 @@ class _RoutineDashboardState extends State<RoutineDashboard> {
                               child: DropdownButton<String>(
                                 value: _selectedCity,
                                 underline: const SizedBox(),
-                                dropdownColor: isDark ? const Color(0xFF1E1016) : Colors.white,
+                                dropdownColor: isDark ? const Color(0xFF121212) : Colors.white,
                                 icon: Icon(Icons.arrow_drop_down, color: theme.colorScheme.primary),
                                 onChanged: (newCity) {
                                   if (newCity != null) {
@@ -222,7 +222,7 @@ class _RoutineDashboardState extends State<RoutineDashboard> {
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? theme.colorScheme.primary
-                                : (isDark ? const Color(0xFF2C1A23) : Colors.white),
+                                : (isDark ? const Color(0xFF121212) : Colors.white),
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: isSelected
                                 ? [BoxShadow(color: theme.colorScheme.primary.withValues(alpha: 0.4), blurRadius: 8, spreadRadius: 1)]
@@ -294,7 +294,7 @@ class _RoutineDashboardState extends State<RoutineDashboard> {
                     margin: const EdgeInsets.only(top: 12.0),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1B0D13) : Colors.white.withValues(alpha: 0.6),
+                      color: isDark ? Colors.black : Colors.white.withValues(alpha: 0.6),
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(32.0),
                       ),
@@ -337,7 +337,7 @@ class _RoutineDashboardState extends State<RoutineDashboard> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2C1A23) : Colors.white,
+        color: isDark ? const Color(0xFF121212) : Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: task.isCompleted ? Colors.grey.withValues(alpha: 0.2) : color.withValues(alpha: 0.3),

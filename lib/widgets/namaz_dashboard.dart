@@ -132,7 +132,7 @@ class _NamazDashboardState extends State<NamazDashboard> {
       child: Container(
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF22131A) : Colors.white,
+          color: isDark ? const Color(0xFF121212) : Colors.white,
           borderRadius: BorderRadius.circular(24.0),
           boxShadow: [
             BoxShadow(

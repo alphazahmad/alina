@@ -182,7 +182,7 @@ class _FinanceDashboardState extends State<FinanceDashboard> {
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF22131A) : Colors.white,
+                      color: isDark ? const Color(0xFF121212) : Colors.white,
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
@@ -216,7 +216,7 @@ class _FinanceDashboardState extends State<FinanceDashboard> {
                               child: DropdownButton<String>(
                                 value: _selectedMonthKey,
                                 underline: const SizedBox(),
-                                dropdownColor: isDark ? const Color(0xFF1E1016) : Colors.white,
+                                dropdownColor: isDark ? const Color(0xFF121212) : Colors.white,
                                 icon: Icon(Icons.arrow_drop_down, color: theme.colorScheme.primary),
                                 onChanged: (newKey) {
                                   if (newKey != null) {
@@ -325,7 +325,7 @@ class _FinanceDashboardState extends State<FinanceDashboard> {
                     margin: const EdgeInsets.only(top: 12.0),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1B0D13) : Colors.white.withValues(alpha: 0.6),
+                      color: isDark ? Colors.black : Colors.white.withValues(alpha: 0.6),
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(32.0),
                       ),
@@ -451,7 +451,7 @@ class _FinanceDashboardState extends State<FinanceDashboard> {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF2C1A23) : Colors.white,
+            color: isDark ? const Color(0xFF121212) : Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: (isIncome ? Colors.green : Colors.red).withValues(alpha: 0.15),
@@ -557,7 +557,7 @@ class _FinanceDashboardState extends State<FinanceDashboard> {
                     return Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF2C1A23) : Colors.white,
+                        color: isDark ? const Color(0xFF121212) : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: d.isCompleted
@@ -638,7 +638,7 @@ class _FinanceDashboardState extends State<FinanceDashboard> {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF2C1A23) : Colors.white,
+            color: isDark ? const Color(0xFF121212) : Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: r.isEnabled ? theme.colorScheme.primary.withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.2),
@@ -709,7 +709,7 @@ class _FinanceDashboardState extends State<FinanceDashboard> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF2C1A23) : Colors.white,
+              color: isDark ? const Color(0xFF121212) : Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.15)),
             ),
@@ -777,7 +777,7 @@ class _FinanceDashboardState extends State<FinanceDashboard> {
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF2C1A23) : Colors.white,
+                        color: isDark ? const Color(0xFF121212) : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(

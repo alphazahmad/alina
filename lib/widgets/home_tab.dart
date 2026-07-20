@@ -187,13 +187,13 @@ class _HomeTabState extends State<HomeTab> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isDark
-              ? [const Color(0xFF3A0A22), const Color(0xFF1E0414)]
-              : [const Color(0xFFFCE4EC), const Color(0xFFFFF0F5)],
+              ? [const Color(0xFF25101A), const Color(0xFF121212)]
+              : [const Color(0xFFFFF5F8), Colors.white],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.15)),
+        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.12)),
       ),
       child: Row(
         children: [
@@ -304,9 +304,9 @@ class _HomeTabState extends State<HomeTab> {
             margin: const EdgeInsets.only(right: 8),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1C1020) : Colors.white,
+              color: isDark ? const Color(0xFF121212) : Colors.white,
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: color.withValues(alpha: 0.15)),
+              border: Border.all(color: color.withValues(alpha: 0.12)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -345,9 +345,9 @@ class _HomeTabState extends State<HomeTab> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 20),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1C1020) : Colors.white,
+            color: isDark ? const Color(0xFF121212) : Colors.white,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
+            border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.08)),
           ),
           child: Column(
             children: [
@@ -369,9 +369,9 @@ class _HomeTabState extends State<HomeTab> {
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1C1020) : Colors.white,
+            color: isDark ? const Color(0xFF121212) : Colors.white,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: color.withValues(alpha: 0.2)),
+            border: Border.all(color: color.withValues(alpha: 0.15)),
           ),
           child: Row(
             children: [
@@ -439,7 +439,7 @@ class _HomeTabState extends State<HomeTab> {
                 Container(
                   height: 36,
                   decoration: BoxDecoration(
-                    color: record == null ? (isDark ? const Color(0xFF1C1020) : Colors.grey.shade100) : barColor.withValues(alpha: 0.15),
+                    color: record == null ? (isDark ? const Color(0xFF121212) : Colors.grey.shade100) : barColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                     border: isToday ? Border.all(color: theme.colorScheme.primary, width: 1.5) : null,
                   ),

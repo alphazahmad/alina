@@ -281,7 +281,7 @@ class _ZikrDashboardState extends State<ZikrDashboard> {
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF22131A) : Colors.white,
+                      color: isDark ? const Color(0xFF121212) : Colors.white,
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
@@ -295,7 +295,7 @@ class _ZikrDashboardState extends State<ZikrDashboard> {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         _buildGlobalMetric('Recitations Today', _todayTotal, Colors.blue),
-                        Container(width: 1, height: 40, color: Colors.grey.shade300),
+                        Container(width: 1, height: 40, color: isDark ? Colors.grey.shade800 : Colors.grey.shade300),
                         _buildGlobalMetric('Lifetime Total', _lifetimeTotal, Colors.green),
                       ],
                     ),
@@ -308,7 +308,7 @@ class _ZikrDashboardState extends State<ZikrDashboard> {
                     margin: const EdgeInsets.only(top: 12.0),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1B0D13) : Colors.white.withValues(alpha: 0.6),
+                      color: isDark ? Colors.black : Colors.white.withValues(alpha: 0.6),
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(32.0),
                       ),
@@ -493,7 +493,7 @@ class _ZikrCounterCardState extends State<_ZikrCounterCard> with SingleTickerPro
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2C1A23) : Colors.white,
+        color: isDark ? const Color(0xFF121212) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(

@@ -26,7 +26,7 @@ class _TasksTabState extends State<TasksTab> {
           child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1C1020) : Colors.white,
+              color: isDark ? const Color(0xFF121212) : Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.12)),
             ),
@@ -147,7 +147,7 @@ class _TodoListViewState extends State<_TodoListView> {
             bottom: MediaQuery.of(ctx2).viewInsets.bottom + 24,
           ),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1C1020) : Colors.white,
+            color: isDark ? const Color(0xFF121212) : Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           ),
           child: Column(
@@ -191,7 +191,7 @@ class _TodoListViewState extends State<_TodoListView> {
                         contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      dropdownColor: isDark ? const Color(0xFF1C1020) : Colors.white,
+                      dropdownColor: isDark ? const Color(0xFF121212) : Colors.white,
                       items: TodoService.categories.map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 12)))).toList(),
                       onChanged: (v) { if (v != null) setLocal(() => category = v); },
                     ),
@@ -206,7 +206,7 @@ class _TodoListViewState extends State<_TodoListView> {
                         contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      dropdownColor: isDark ? const Color(0xFF1C1020) : Colors.white,
+                      dropdownColor: isDark ? const Color(0xFF121212) : Colors.white,
                       items: TodoService.priorities.map((p) => DropdownMenuItem(value: p, child: Text(p, style: const TextStyle(fontSize: 12)))).toList(),
                       onChanged: (v) { if (v != null) setLocal(() => priority = v); },
                     ),
@@ -413,7 +413,7 @@ class _TodoListViewState extends State<_TodoListView> {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1C1020) : Colors.white,
+          color: isDark ? const Color(0xFF121212) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: todo.isCompleted ? Colors.grey.withValues(alpha: 0.2) : priorityColor.withValues(alpha: 0.2),

@@ -34,7 +34,7 @@ class _IslamicHubState extends State<IslamicHub> {
           child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1C1020) : Colors.white,
+              color: isDark ? const Color(0xFF121212) : Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.12)),
             ),

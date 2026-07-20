@@ -162,7 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       labelStyle: TextStyle(color: isDark ? Colors.white60 : Colors.black54),
                       prefixIcon: Icon(Icons.email, color: theme.colorScheme.primary),
                       filled: true,
-                      fillColor: isDark ? const Color(0xFF1E1016) : Colors.white,
+                      fillColor: isDark ? const Color(0xFF121212) : Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                         borderSide: BorderSide.none,
@@ -211,7 +211,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                       ),
                       filled: true,
-                      fillColor: isDark ? const Color(0xFF1E1016) : Colors.white,
+                      fillColor: isDark ? const Color(0xFF121212) : Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                         borderSide: BorderSide.none,
