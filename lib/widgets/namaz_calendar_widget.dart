@@ -113,9 +113,7 @@ class _NamazCalendarWidgetState extends State<NamazCalendarWidget> {
   Color _dayColor(int doneCount, ThemeData theme, bool isDark) {
     if (doneCount < 0) return Colors.transparent; // future/out of range
     if (doneCount == 5) return Colors.green;
-    if (doneCount >= 3) return Colors.orange;
-    if (doneCount >= 1) return Colors.red.shade300;
-    return isDark ? Colors.grey.shade800 : Colors.grey.shade200;
+    return Colors.transparent;
   }
 
   void _prevMonth() {
@@ -233,9 +231,7 @@ class _NamazCalendarWidgetState extends State<NamazCalendarWidget> {
           runSpacing: 8,
           children: [
             _legendItem(Colors.green, 'All 5 Done', isDark),
-            _legendItem(Colors.orange, '3–4 Done', isDark),
-            _legendItem(Colors.red.shade300, '1–2 Done', isDark),
-            _legendItem(isDark ? Colors.grey.shade700 : Colors.grey.shade300, '0 Done', isDark),
+            _legendItem(isDark ? Colors.grey.shade800 : Colors.grey.shade300, 'Incomplete / Idle', isDark),
           ],
         ),
       ],
@@ -247,10 +243,10 @@ class _NamazCalendarWidgetState extends State<NamazCalendarWidget> {
     final completionRate = totalPossible > 0 ? ((_totalAttended + _totalQaza) / totalPossible * 100) : 0.0;
 
     final stats = [
-      {'label': 'Attended', 'value': '$_totalAttended', 'icon': Icons.check_circle, 'color': Colors.green},
-      {'label': 'Qaza', 'value': '$_totalQaza', 'icon': Icons.access_time_filled, 'color': Colors.orange},
-      {'label': 'Missed', 'value': '$_totalNotAttended', 'icon': Icons.cancel, 'color': Colors.red},
-      {'label': 'Completion', 'value': '${completionRate.toStringAsFixed(0)}%', 'icon': Icons.pie_chart, 'color': theme.colorScheme.primary},
+      {'label': 'On-Time Attended', 'value': '$_totalAttended', 'icon': Icons.check_circle, 'color': Colors.green},
+      {'label': 'Qaza Offered', 'value': '$_totalQaza', 'icon': Icons.access_time_filled, 'color': Colors.orange},
+      {'label': 'Remaining Qaza', 'value': '$_totalNotAttended', 'icon': Icons.cancel, 'color': Colors.red},
+      {'label': 'Completion Rate', 'value': '${completionRate.toStringAsFixed(0)}%', 'icon': Icons.pie_chart, 'color': theme.colorScheme.primary},
     ];
 
     return GridView.count(
@@ -341,7 +337,14 @@ class _NamazCalendarWidgetState extends State<NamazCalendarWidget> {
                   ),
                 ),
                 if (doneCount >= 0 && doneCount < 5)
-                  Text('$doneCount/5', style: TextStyle(fontSize: 7, color: bgColor)),
+                  Text(
+                    '$doneCount/5',
+                    style: TextStyle(
+                      fontSize: 8,
+                      color: isDark ? Colors.white54 : Colors.grey.shade600,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
               ],
             ),
           ),

@@ -5,44 +5,53 @@ import '../services/prayer_time_service.dart';
 
 class HijriDate {
   static String getTodayHijri() {
-    final now = DateTime.now();
-    int year = now.year;
-    int month = now.month;
-    int day = now.day;
-    
-    if (month < 3) {
-      year -= 1;
-      month += 12;
+    final date = DateTime.now();
+    int y = date.year;
+    int m = date.month;
+    int d = date.day;
+
+    if (m <= 2) {
+      y -= 1;
+      m += 12;
     }
-    
-    int a = (year / 100).floor();
-    int b = (a / 4).floor();
-    int c = 2 - a + b;
-    int e = (365.25 * (year + 4716)).floor();
-    int f = (30.6001 * (month + 1)).floor();
-    double jd = c + day + e + f - 1524.5;
-    
-    double l = jd - 1948440 + 10632;
-    int n = ((l - 1) / 10631).floor();
-    l = l - 10631 * n + 354;
-    int j = (((10985 - l) / 5316).floor() * ((50 - l) / 5315).floor() * ((2292 - l) / 10985).floor() * ((2293 - l) / 10985).floor());
-    l = l + j * 30 + 1;
-    int y = (30 * n) + ((30 * l - 83) / 10631).floor();
-    int m = ((l - (354 * y + (11 * y + 3) / 30).floor()) / 30).floor();
-    int d = (l - (30 * m) - (354 * y + (11 * y + 3) / 30).floor()).floor();
-    
+
+    int A = (y / 100).floor();
+    int B = (A / 4).floor();
+    int C = 2 - A + B;
+    int E = (365.25 * (y + 4716)).floor();
+    int F = (30.6001 * (m + 1)).floor();
+    double jd = C + d + E + F - 1524.5;
+
+    int base = (jd - 1948439.5).round();
+    int hYear = ((base * 30 + 10646) / 10631).floor();
+    int daysInPriorYears = ((hYear - 1) * 354 + ((hYear - 1) * 11 + 3) / 30).floor();
+    int dayOfYear = base - daysInPriorYears;
+
+    int hMonth = 1;
+    int hDay = 1;
+
+    final monthLengths = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
+    bool isLeap = ((hYear * 11 + 14) % 30) < 11;
+
+    int tempDays = dayOfYear;
+    for (int i = 0; i < 12; i++) {
+      int len = monthLengths[i];
+      if (i == 11 && isLeap) len = 30;
+      if (tempDays <= len) {
+        hMonth = i + 1;
+        hDay = tempDays;
+        break;
+      }
+      tempDays -= len;
+    }
+
     final hijriMonths = [
       'Muharram', 'Safar', 'Rabi\' al-Awwal', 'Rabi\' al-Thani',
       'Jumada al-Awwal', 'Jumada al-Thani', 'Rajab', 'Sha\'ban',
       'Ramadan', 'Shawwal', 'Dhu al-Qi\'dah', 'Dhu al-Hijjah'
     ];
-    
-    // Safety check for index out of bounds
-    int monthIndex = (m - 1).clamp(0, 11);
-    
-    // Add astronomical correction offset if necessary (usually 1 or 2 days depending on sighting, Safar 1448 check)
-    // For 2026-07-20: it corresponds to Safar 5, 1448. The calculation yields y=1448, m=2, d=5.
-    return '$d ${hijriMonths[monthIndex]} $y AH';
+
+    return '$hDay ${hijriMonths[hMonth - 1]} $hYear AH';
   }
 }
 

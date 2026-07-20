@@ -278,47 +278,57 @@ class CalendarService {
   // --- Automatic Islamic Key Dates & Hijri Converter ---
 
   Map<String, dynamic> getHijriDetails(DateTime gDate) {
-    // Astronomical Julian Day algorithm for Hijri calculation
-    final day = gDate.day;
-    final month = gDate.month;
-    final year = gDate.year;
+    int y = gDate.year;
+    int m = gDate.month;
+    int d = gDate.day;
 
-    int m = month;
-    int y = year;
     if (m <= 2) {
       y -= 1;
       m += 12;
     }
-    final a = (y / 100).floor();
-    final b = 2 - a + (a / 4).floor();
 
-    final jd = (365.25 * (y + 4716)).floor() + (30.6001 * (m + 1)).floor() + day + b - 1524.5;
+    int A = (y / 100).floor();
+    int B = (A / 4).floor();
+    int C = 2 - A + B;
+    int E = (365.25 * (y + 4716)).floor();
+    int F = (30.6001 * (m + 1)).floor();
+    double jd = C + d + E + F - 1524.5;
 
-    final l = (jd - 1948440 + 10632).floor();
-    final n = ((l - 1) / 10631).floor();
-    final l1 = l - 10631 * n + 354;
-    final j = (((10985 - l1) / 5316).floor()) * (( (50 * l1) / 17719 ).floor()) + (((l1 / 5670).floor()) * (((43 * l1) / 15238).floor()));
-    final l2 = l1 - (((30 - j) / 15).floor()) * (((17719 * j) / 50).floor()) - ((j / 30).floor()) * (((15238 * j) / 43).floor()) + 29;
-    final m1 = ((24 * l2) / 709).floor();
-    final d1 = l2 - ((709 * m1) / 24).floor();
-    final y1 = 30 * n + j - 30;
+    int base = (jd - 1948439.5).round();
+    int hYear = ((base * 30 + 10646) / 10631).floor();
+    int daysInPriorYears = ((hYear - 1) * 354 + ((hYear - 1) * 11 + 3) / 30).floor();
+    int dayOfYear = base - daysInPriorYears;
+
+    int hMonth = 1;
+    int hDay = 1;
+
+    final monthLengths = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
+    bool isLeap = ((hYear * 11 + 14) % 30) < 11;
+
+    int tempDays = dayOfYear;
+    for (int i = 0; i < 12; i++) {
+      int len = monthLengths[i];
+      if (i == 11 && isLeap) len = 30;
+      if (tempDays <= len) {
+        hMonth = i + 1;
+        hDay = tempDays;
+        break;
+      }
+      tempDays -= len;
+    }
 
     final islamicMonths = [
-      'Muharram', 'Safar', 'Rabi-ul-Awwal', 'Rabi-al-Thani',
+      'Muharram', 'Safar', 'Rabi\' al-Awwal', 'Rabi\' al-Thani',
       'Jumada al-Awwal', 'Jumada al-Thani', 'Rajab', 'Sha\'ban',
-      'Ramadan', 'Shawwal', 'Dhul-Qadah', 'Dhul-Hijjah'
+      'Ramadan', 'Shawwal', 'Dhu al-Qi\'dah', 'Dhu al-Hijjah'
     ];
 
-    final hDay = d1;
-    final hMonthIdx = (m1 - 1).clamp(0, 11);
-    final hYear = y1;
-
-    final monthName = islamicMonths[hMonthIdx];
+    final monthName = islamicMonths[hMonth - 1];
     final formatted = '$hDay $monthName $hYear AH';
 
     return {
       'day': hDay,
-      'month': hMonthIdx + 1,
+      'month': hMonth,
       'monthName': monthName,
       'year': hYear,
       'formatted': formatted,
