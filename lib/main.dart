@@ -8,6 +8,7 @@ import 'services/namaz_service.dart';
 import 'screens/login_screen.dart';
 import 'widgets/namaz_dashboard.dart';
 import 'widgets/zikr_dashboard.dart';
+import 'widgets/finance_dashboard.dart';
 import 'screens/namaz_history_sheet.dart';
 
 void main() async {
@@ -798,7 +799,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _currentIndex == 0 ? 'Alina' : 'Zikr Recitations',
+          _currentIndex == 0
+              ? 'Alina'
+              : _currentIndex == 1
+                  ? 'Zikr Recitations'
+                  : 'Financial Management',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: theme.colorScheme.primary,
@@ -825,6 +830,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 children: [
                   _buildDashboardTab(isDark, theme),
                   ZikrDashboard(uid: widget.user.uid),
+                  FinanceDashboard(uid: widget.user.uid),
                 ],
               ),
       ),
@@ -847,6 +853,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             icon: Icon(Icons.radio_button_checked),
             selectedIcon: Icon(Icons.album),
             label: 'Zikr Tracker',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.account_balance_wallet_outlined),
+            selectedIcon: Icon(Icons.account_balance_wallet),
+            label: 'Finance',
           ),
         ],
       ),
