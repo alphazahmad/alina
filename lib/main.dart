@@ -8,15 +8,33 @@ import 'screens/login_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  final options = DefaultFirebaseOptions.currentPlatform;
-  if (options != null) {
-    try {
-      await Firebase.initializeApp(options: options);
-    } catch (e) {
-      debugPrint('Firebase initialization failed: $e. Operating in fallback sandbox mode.');
+  bool firebaseInitialized = false;
+  
+  // 1. Try native auto-initialization (looks for google-services.json on Android)
+  try {
+    await Firebase.initializeApp();
+    firebaseInitialized = true;
+    debugPrint('Firebase initialized successfully using native configuration.');
+  } catch (e) {
+    debugPrint('Native Firebase initialization skipped/failed: $e');
+  }
+
+  // 2. Try Dart options initialization if native failed
+  if (!firebaseInitialized) {
+    final options = DefaultFirebaseOptions.currentPlatform;
+    if (options != null) {
+      try {
+        await Firebase.initializeApp(options: options);
+        firebaseInitialized = true;
+        debugPrint('Firebase initialized successfully using Dart options.');
+      } catch (e) {
+        debugPrint('Dart Firebase options initialization failed: $e');
+      }
     }
-  } else {
-    debugPrint('No Firebase options provided. Operating in sandbox mode.');
+  }
+
+  if (!firebaseInitialized) {
+    debugPrint('Operating in Local Sandbox Mode.');
   }
 
   runApp(const AlinaApp());

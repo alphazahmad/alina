@@ -1,6 +1,6 @@
 import 'dart:async';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
-import '../firebase_options.dart';
 
 class AuthUser {
   final String uid;
@@ -25,7 +25,7 @@ class AuthService {
   AuthUser? _currentSandboxUser;
   bool _initialized = false;
 
-  bool get isSandboxMode => DefaultFirebaseOptions.currentPlatform == null;
+  bool get isSandboxMode => Firebase.apps.isEmpty;
 
   void _init() {
     if (_initialized) return;
