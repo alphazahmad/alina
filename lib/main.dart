@@ -188,6 +188,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadUserData() async {
     if (!mounted) return;
     try {
+      // Recalculate 7-day relationship stats on startup to keep Alina reactive
+      await _namazService.recalculateRelationshipStats(widget.user.uid);
+
       // Fetch stats concurrently
       final results = await Future.wait([
         _namazService.getDayRecord(widget.user.uid, DateTime.now()),

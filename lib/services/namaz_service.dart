@@ -231,29 +231,52 @@ class NamazService {
     final streak = await _calculateActiveStreak(uid);
     stats['streakDays'] = streak;
 
-    // Gamified relationship rewards for logging prayers
-    if (attendedDelta > 0) {
-      int lovePoints = stats['lovePoints'] ?? 10;
-      int relationshipLevel = stats['relationshipLevel'] ?? 1;
+    // Save standard stats delta
+    await _saveStatsSummary(uid, stats);
 
-      lovePoints = (lovePoints + (attendedDelta * 4)).clamp(0, 100);
-      if (lovePoints == 100 && relationshipLevel < 10) {
-        relationshipLevel++;
-        lovePoints = 10;
+    // Recalculate 7-day relationship stats based on overall changes
+    await recalculateRelationshipStats(uid);
+  }
+
+  Future<void> recalculateRelationshipStats(String uid) async {
+    final stats = await getStatsSummary(uid);
+    final now = DateTime.now();
+    int completedCount = 0;
+    final prayers = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+
+    for (int i = 0; i < 7; i++) {
+      final d = now.subtract(Duration(days: i));
+      if (d.isBefore(startDate)) continue;
+      
+      // Load day record
+      final record = await getDayRecord(uid, d);
+      for (final prayer in prayers) {
+        final s = record[prayer] ?? '';
+        if (s == 'Attended' || s == 'Qaza') {
+          completedCount++;
+        }
       }
-      stats['lovePoints'] = lovePoints;
-      stats['relationshipLevel'] = relationshipLevel;
     }
 
-    // Dynamic moods based on streak
-    if (streak >= 15) {
-      stats['alinaMood'] = 'Proud 😍';
-    } else if (streak >= 7) {
-      stats['alinaMood'] = 'Inspired 🥰';
-    } else if (streak >= 3) {
-      stats['alinaMood'] = 'Happy 💖';
+    // Direct Love Points = completed prayers percentage over last 7 days (out of 35)
+    final lovePoints = ((completedCount / 35) * 100).round().clamp(0, 100);
+    // Relationship Level scales directly with love points (1 to 5)
+    final relationshipLevel = (lovePoints / 20).floor().clamp(1, 5);
+
+    stats['lovePoints'] = lovePoints;
+    stats['relationshipLevel'] = relationshipLevel;
+
+    // Alina's dynamic mood based on the user's Namaz completion rate in last 7 days
+    if (lovePoints >= 85) {
+      stats['alinaMood'] = 'Proud & Loving 😍💖';
+    } else if (lovePoints >= 65) {
+      stats['alinaMood'] = 'Happy & Supportive 🥰';
+    } else if (lovePoints >= 45) {
+      stats['alinaMood'] = 'Caring & Encouraging 😊💙';
+    } else if (lovePoints >= 25) {
+      stats['alinaMood'] = 'Concerned & Soft 🥺';
     } else {
-      stats['alinaMood'] = 'Caring 💙';
+      stats['alinaMood'] = 'Sad & Disappointed 😢💔';
     }
 
     await _saveStatsSummary(uid, stats);

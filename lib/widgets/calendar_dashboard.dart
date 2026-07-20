@@ -86,6 +86,89 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
     return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
   }
 
+  Future<void> _selectMonthYearDirect(BuildContext context) async {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    int selectedYear = _focusedMonth.year;
+    int selectedMonth = _focusedMonth.month;
+
+    final monthsList = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    final picked = await showDialog<DateTime>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
+              title: Text(
+                'Select Month & Year',
+                style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<int>(
+                    initialValue: selectedYear,
+                    dropdownColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                    decoration: const InputDecoration(labelText: 'Year', border: OutlineInputBorder()),
+                    items: List.generate(21, (i) => 2015 + i).map((yr) {
+                      return DropdownMenuItem(value: yr, child: Text('$yr'));
+                    }).toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setDialogState(() => selectedYear = val);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<int>(
+                    initialValue: selectedMonth,
+                    dropdownColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                    decoration: const InputDecoration(labelText: 'Month', border: OutlineInputBorder()),
+                    items: List.generate(12, (i) => i + 1).map((mo) {
+                      return DropdownMenuItem(value: mo, child: Text(monthsList[mo - 1]));
+                    }).toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setDialogState(() => selectedMonth = val);
+                      }
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.primary, foregroundColor: Colors.white),
+                  onPressed: () {
+                    Navigator.pop(context, DateTime(selectedYear, selectedMonth, 1));
+                  },
+                  child: const Text('Select'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _focusedMonth = picked;
+        _selectedDate = DateTime(picked.year, picked.month, 1);
+      });
+      _loadCalendarData();
+    }
+  }
+
   void _openAddSheet([CalendarEvent? existing]) {
     showModalBottomSheet(
       context: context,
@@ -281,17 +364,35 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                 _loadCalendarData();
               },
             ),
-            Column(
-              children: [
-                Text(
-                  monthLabel,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
+            GestureDetector(
+              onTap: () => _selectMonthYearDirect(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.15)),
                 ),
-                Text(
-                  '${hijri['monthName']} ${hijri['year']} AH',
-                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          monthLabel,
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(Icons.arrow_drop_down, size: 18, color: theme.colorScheme.primary),
+                      ],
+                    ),
+                    Text(
+                      '${hijri['monthName']} ${hijri['year']} AH',
+                      style: const TextStyle(fontSize: 10, color: Colors.grey),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
             IconButton(
               icon: const Icon(Icons.chevron_right),

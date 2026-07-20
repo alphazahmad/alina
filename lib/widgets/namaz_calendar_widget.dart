@@ -135,6 +135,94 @@ class _NamazCalendarWidgetState extends State<NamazCalendarWidget> {
     _loadMonthData();
   }
 
+  Future<void> _selectMonthYearDirect(BuildContext context) async {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    int selectedYear = _displayMonth.year;
+    int selectedMonth = _displayMonth.month;
+
+    final monthsList = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    final picked = await showDialog<DateTime>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
+              title: Text(
+                'Select Month & Year',
+                style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<int>(
+                    initialValue: selectedYear,
+                    dropdownColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                    decoration: const InputDecoration(labelText: 'Year', border: OutlineInputBorder()),
+                    items: List.generate(21, (i) => 2015 + i).map((yr) {
+                      return DropdownMenuItem(value: yr, child: Text('$yr'));
+                    }).toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setDialogState(() => selectedYear = val);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<int>(
+                    initialValue: selectedMonth,
+                    dropdownColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                    decoration: const InputDecoration(labelText: 'Month', border: OutlineInputBorder()),
+                    items: List.generate(12, (i) => i + 1).map((mo) {
+                      return DropdownMenuItem(value: mo, child: Text(monthsList[mo - 1]));
+                    }).toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setDialogState(() => selectedMonth = val);
+                      }
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.primary, foregroundColor: Colors.white),
+                  onPressed: () {
+                    Navigator.pop(context, DateTime(selectedYear, selectedMonth, 1));
+                  },
+                  child: const Text('Select'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (picked != null) {
+      final now = DateTime.now();
+      // Cap at current month
+      final maxMonth = DateTime(now.year, now.month, 1);
+      final finalDate = picked.isAfter(maxMonth) ? maxMonth : picked;
+      
+      setState(() {
+        _displayMonth = finalDate;
+        _monthRecords = {};
+      });
+      _loadMonthData();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -145,7 +233,7 @@ class _NamazCalendarWidgetState extends State<NamazCalendarWidget> {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       children: [
         // ─── Lifetime Stats Cards ──────────────────────────────────
-        _buildSectionLabel('Lifetime Namaz Stats', theme),
+        _buildSectionLabel('Salah stats', theme),
         const SizedBox(height: 10),
         _isLoadingStats
             ? const Center(child: SizedBox(height: 60, child: CircularProgressIndicator()))
@@ -181,7 +269,7 @@ class _NamazCalendarWidgetState extends State<NamazCalendarWidget> {
         const SizedBox(height: 20),
 
         // ─── Month Navigation Header ───────────────────────────────
-        _buildSectionLabel('Namaz Attendance Calendar', theme),
+        _buildSectionLabel('Salah Attendance Calendar', theme),
         const SizedBox(height: 10),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -191,9 +279,26 @@ class _NamazCalendarWidgetState extends State<NamazCalendarWidget> {
               onPressed: _prevMonth,
               color: theme.colorScheme.primary,
             ),
-            Text(
-              '${months[_displayMonth.month - 1]} ${_displayMonth.year}',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
+            GestureDetector(
+              onTap: () => _selectMonthYearDirect(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.15)),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      '${months[_displayMonth.month - 1]} ${_displayMonth.year}',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(Icons.arrow_drop_down, size: 18, color: theme.colorScheme.primary),
+                  ],
+                ),
+              ),
             ),
             IconButton(
               icon: const Icon(Icons.chevron_right),
