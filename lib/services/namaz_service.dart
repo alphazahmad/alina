@@ -181,6 +181,9 @@ class NamazService {
         'totalQaza': 0,
         'totalNotAttended': totalPrayers,
         'streakDays': 0,
+        'relationshipLevel': 1,
+        'lovePoints': 10,
+        'alinaMood': 'Happy 💖',
       };
 
       // Save initial summary
@@ -221,7 +224,33 @@ class NamazService {
     stats['totalNotAttended'] = (stats['totalNotAttended'] + notAttendedDelta).clamp(0, 999999);
 
     // Compute active streak (consecutive days preceding today where all 5 prayers were completed: Attended or Qaza)
-    stats['streakDays'] = await _calculateActiveStreak(uid);
+    final streak = await _calculateActiveStreak(uid);
+    stats['streakDays'] = streak;
+
+    // Gamified relationship rewards for logging prayers
+    if (attendedDelta > 0) {
+      int lovePoints = stats['lovePoints'] ?? 10;
+      int relationshipLevel = stats['relationshipLevel'] ?? 1;
+
+      lovePoints = (lovePoints + (attendedDelta * 4)).clamp(0, 100);
+      if (lovePoints == 100 && relationshipLevel < 10) {
+        relationshipLevel++;
+        lovePoints = 10;
+      }
+      stats['lovePoints'] = lovePoints;
+      stats['relationshipLevel'] = relationshipLevel;
+    }
+
+    // Dynamic moods based on streak
+    if (streak >= 15) {
+      stats['alinaMood'] = 'Proud 😍';
+    } else if (streak >= 7) {
+      stats['alinaMood'] = 'Inspired 🥰';
+    } else if (streak >= 3) {
+      stats['alinaMood'] = 'Happy 💖';
+    } else {
+      stats['alinaMood'] = 'Caring 💙';
+    }
 
     await _saveStatsSummary(uid, stats);
   }

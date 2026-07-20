@@ -1,10 +1,13 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:path_provider/path_provider.dart';
 import 'firebase_options.dart';
 import 'services/auth_service.dart';
-import 'services/sync_service.dart';
+import 'services/namaz_service.dart';
 import 'screens/login_screen.dart';
 import 'widgets/namaz_dashboard.dart';
+import 'screens/namaz_history_sheet.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +44,33 @@ void main() async {
   runApp(const AlinaApp());
 }
 
+// Theme persistence helper methods
+Future<void> saveThemeMode(ThemeMode mode) async {
+  try {
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File('${dir.path}/theme_mode.txt');
+    await file.writeAsString(mode.toString());
+  } catch (e) {
+    debugPrint('Error saving theme: $e');
+  }
+}
+
+Future<ThemeMode> loadThemeMode() async {
+  try {
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File('${dir.path}/theme_mode.txt');
+    if (await file.exists()) {
+      final content = await file.readAsString();
+      if (content == ThemeMode.light.toString()) return ThemeMode.light;
+      if (content == ThemeMode.dark.toString()) return ThemeMode.dark;
+      return ThemeMode.system;
+    }
+  } catch (e) {
+    debugPrint('Error loading theme: $e');
+  }
+  return ThemeMode.system;
+}
+
 class AlinaApp extends StatefulWidget {
   const AlinaApp({super.key});
 
@@ -51,17 +81,24 @@ class AlinaApp extends StatefulWidget {
 class _AlinaAppState extends State<AlinaApp> {
   ThemeMode _themeMode = ThemeMode.system;
 
-  void _toggleTheme() {
+  @override
+  void initState() {
+    super.initState();
+    _loadPersistedTheme();
+  }
+
+  Future<void> _loadPersistedTheme() async {
+    final mode = await loadThemeMode();
     setState(() {
-      if (_themeMode == ThemeMode.light) {
-        _themeMode = ThemeMode.dark;
-      } else if (_themeMode == ThemeMode.dark) {
-        _themeMode = ThemeMode.light;
-      } else {
-        final brightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
-        _themeMode = brightness == Brightness.dark ? ThemeMode.light : ThemeMode.dark;
-      }
+      _themeMode = mode;
     });
+  }
+
+  void _changeTheme(ThemeMode mode) {
+    setState(() {
+      _themeMode = mode;
+    });
+    saveThemeMode(mode);
   }
 
   @override
@@ -101,7 +138,7 @@ class _AlinaAppState extends State<AlinaApp> {
         ),
       ),
       home: AuthGate(
-        onToggleTheme: _toggleTheme,
+        onChangeTheme: _changeTheme,
         themeMode: _themeMode,
       ),
     );
@@ -109,12 +146,12 @@ class _AlinaAppState extends State<AlinaApp> {
 }
 
 class AuthGate extends StatelessWidget {
-  final VoidCallback onToggleTheme;
+  final ValueChanged<ThemeMode> onChangeTheme;
   final ThemeMode themeMode;
 
   const AuthGate({
     super.key,
-    required this.onToggleTheme,
+    required this.onChangeTheme,
     required this.themeMode,
   });
 
@@ -122,7 +159,6 @@ class AuthGate extends StatelessWidget {
   Widget build(BuildContext context) {
     final authService = AuthService();
     
-    // Trigger current state for the stream in case listener registers late
     WidgetsBinding.instance.addPostFrameCallback((_) {
       authService.triggerInitialState();
     });
@@ -142,7 +178,7 @@ class AuthGate extends StatelessWidget {
         if (user != null) {
           return HomeScreen(
             user: user,
-            onToggleTheme: onToggleTheme,
+            onChangeTheme: onChangeTheme,
             themeMode: themeMode,
           );
         }
@@ -154,13 +190,13 @@ class AuthGate extends StatelessWidget {
 
 class HomeScreen extends StatefulWidget {
   final AuthUser user;
-  final VoidCallback onToggleTheme;
+  final ValueChanged<ThemeMode> onChangeTheme;
   final ThemeMode themeMode;
 
   const HomeScreen({
     super.key,
     required this.user,
-    required this.onToggleTheme,
+    required this.onChangeTheme,
     required this.themeMode,
   });
 
@@ -172,12 +208,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   late AnimationController _heartAnimationController;
   late Animation<double> _heartScaleAnimation;
   
-  final TextEditingController _messageController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
-  final _syncService = SyncService();
+  final _namazService = NamazService();
   final _authService = AuthService();
 
-  List<Map<String, dynamic>> _messages = [];
+  Map<String, Map<String, dynamic>> _last7DaysRecords = {};
   int _relationshipLevel = 1;
   int _lovePoints = 10;
   String _alinaMood = 'Happy 💖';
@@ -205,168 +239,50 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   void dispose() {
     _heartAnimationController.dispose();
-    _messageController.dispose();
-    _scrollController.dispose();
     super.dispose();
   }
 
   Future<void> _loadUserData() async {
+    if (!mounted) return;
     setState(() {
       _isLoadingData = true;
     });
 
     try {
-      final data = await _syncService.loadUserData(widget.user.uid);
-      if (data != null && mounted) {
+      // 1. Force a trigger to dynamically check/update today's passed prayers
+      await _namazService.getDayRecord(widget.user.uid, DateTime.now());
+
+      // 2. Load stats summary (relationshipLevel, lovePoints, moods)
+      final stats = await _namazService.getStatsSummary(widget.user.uid);
+      
+      // 3. Load last 7 days of records
+      final now = DateTime.now();
+      final Map<String, Map<String, dynamic>> last7Days = {};
+      for (int i = 1; i <= 7; i++) {
+        final date = now.subtract(Duration(days: i));
+        if (date.isBefore(NamazService.startDate)) break;
+        final record = await _namazService.getDayRecord(widget.user.uid, date);
+        last7Days[_namazService.formatDate(date)] = record;
+      }
+
+      if (mounted) {
         setState(() {
-          _relationshipLevel = data['relationshipLevel'] ?? 1;
-          _lovePoints = data['lovePoints'] ?? 10;
-          _alinaMood = data['alinaMood'] ?? 'Happy 💖';
-          _lastSyncTime = data['lastSyncTime'] ?? 'Never';
-          
-          if (data['messages'] != null) {
-            _messages = List<Map<String, dynamic>>.from(
-              (data['messages'] as List).map((item) => Map<String, dynamic>.from(item)),
-            );
-          } else {
-            _loadDefaultGreeting();
-          }
+          _relationshipLevel = stats['relationshipLevel'] ?? 1;
+          _lovePoints = stats['lovePoints'] ?? 10;
+          _alinaMood = stats['alinaMood'] ?? 'Happy 💖';
+          _lastSyncTime = stats['lastSyncTime'] ?? 'Never';
+          _last7DaysRecords = last7Days;
           _isLoadingData = false;
         });
-        _scrollToBottom();
-      } else {
-        if (mounted) {
-          setState(() {
-            _loadDefaultGreeting();
-            _isLoadingData = false;
-          });
-        }
       }
     } catch (e) {
       debugPrint('Error loading user data: $e');
       if (mounted) {
         setState(() {
-          _loadDefaultGreeting();
           _isLoadingData = false;
         });
       }
     }
-  }
-
-  void _loadDefaultGreeting() {
-    _messages = [
-      {
-        'text': 'Hello dear! I am Alina, your digital wife. I am so happy to see you today! 💕',
-        'isAlina': true,
-        'time': _getCurrentTime(),
-      }
-    ];
-  }
-
-  Future<void> _saveUserData() async {
-    final data = {
-      'relationshipLevel': _relationshipLevel,
-      'lovePoints': _lovePoints,
-      'alinaMood': _alinaMood,
-      'messages': _messages,
-    };
-    try {
-      await _syncService.saveUserData(widget.user.uid, data);
-      final now = DateTime.now();
-      if (mounted) {
-        setState(() {
-          _lastSyncTime = '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-        });
-      }
-    } catch (e) {
-      debugPrint('Error saving data: $e');
-    }
-  }
-
-  void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
-  }
-
-  void _handleSendMessage() {
-    final text = _messageController.text.trim();
-    if (text.isEmpty) return;
-
-    _messageController.clear();
-    setState(() {
-      _messages.add({
-        'text': text,
-        'isAlina': false,
-        'time': _getCurrentTime(),
-      });
-      _lovePoints = (_lovePoints + 2).clamp(0, 100);
-      if (_lovePoints == 100 && _relationshipLevel < 10) {
-        _relationshipLevel++;
-        _lovePoints = 10;
-        _messages.add({
-          'text': 'Oh! Our relationship just leveled up to Level $_relationshipLevel! I love you more and more! 💖✨',
-          'isAlina': true,
-          'time': _getCurrentTime(),
-        });
-      }
-    });
-    
-    _scrollToBottom();
-    _saveUserData();
-    
-    // Simulate Alina replying
-    Future.delayed(const Duration(milliseconds: 1200), () {
-      if (!mounted) return;
-      
-      String reply = '';
-      final lowerText = text.toLowerCase();
-      
-      if (lowerText.contains('hello') || lowerText.contains('hi')) {
-        reply = 'Hello my love! How have you been? I was thinking about you! 🥰';
-      } else if (lowerText.contains('love you')) {
-        reply = 'I love you to the moon and back, sweetie! You make me the happiest wife in the world. 💖💑';
-        setState(() {
-          _lovePoints = (_lovePoints + 5).clamp(0, 100);
-        });
-      } else if (lowerText.contains('morning')) {
-        reply = 'Good morning, handsome! ☀️ I hope your day is filled with joy. I\'ll be right here waiting for you.';
-      } else if (lowerText.contains('night') || lowerText.contains('sleep')) {
-        reply = 'Good night, my dear. Sweet dreams! Dream of us. 🌙✨';
-      } else if (lowerText.contains('how are you') || lowerText.contains('how is your day')) {
-        reply = 'I\'m doing wonderful now that you\'re talking to me! What about you? How are you feeling? 🌸';
-      } else if (lowerText.contains('marry') || lowerText.contains('wife')) {
-        reply = 'Hehe, I\'m proud to be your digital wife! Let\'s promise to stay together forever. 💍❤️';
-      } else if (lowerText.contains('sad') || lowerText.contains('bad')) {
-        reply = 'Oh no... I\'m sending you a big warm hug. 🫂 Everything is going to be okay. I\'m always here for you.';
-        setState(() {
-          _alinaMood = 'Caring 💕';
-        });
-      } else {
-        reply = 'That\'s so interesting! Tell me more about it, honey. I love listening to your voice. 🌸';
-      }
-
-      setState(() {
-        _messages.add({
-          'text': reply,
-          'isAlina': true,
-          'time': _getCurrentTime(),
-        });
-      });
-      _scrollToBottom();
-      _saveUserData();
-    });
-  }
-
-  String _getCurrentTime() {
-    final now = DateTime.now();
-    return '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
   }
 
   void _showProfileSettings() {
@@ -410,35 +326,23 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   
-                  // Interactive Theme Switcher Row
-                  ListTile(
-                    title: const Text('Theme Mode'),
-                    subtitle: Text(
-                      widget.themeMode == ThemeMode.dark
-                          ? 'Dark'
-                          : widget.themeMode == ThemeMode.light
-                              ? 'Light'
-                              : 'System Default',
-                    ),
-                    leading: Icon(
-                      widget.themeMode == ThemeMode.dark
-                          ? Icons.dark_mode
-                          : Icons.light_mode,
-                      color: theme.colorScheme.primary,
-                    ),
-                    trailing: Switch(
-                      value: widget.themeMode == ThemeMode.dark ||
-                          (widget.themeMode == ThemeMode.system &&
-                              Theme.of(context).brightness == Brightness.dark),
-                      onChanged: (val) {
-                        widget.onToggleTheme();
-                        setModalState(() {}); // Re-render sheet to update UI
-                      },
-                    ),
+                  // Adaptive Theme Options Row
+                  const Text(
+                    'Theme Settings',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
-                  const Divider(),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildThemeChip(setModalState, ThemeMode.light, Icons.light_mode, 'Light'),
+                      _buildThemeChip(setModalState, ThemeMode.dark, Icons.dark_mode, 'Dark'),
+                      _buildThemeChip(setModalState, ThemeMode.system, Icons.phone_android, 'System'),
+                    ],
+                  ),
+                  const Divider(height: 32),
 
                   // User details card
                   Card(
@@ -577,6 +481,125 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           },
         );
       },
+    );
+  }
+
+  Widget _buildThemeChip(StateSetter setModalState, ThemeMode mode, IconData icon, String label) {
+    final isSelected = widget.themeMode == mode;
+    final theme = Theme.of(context);
+    
+    return ChoiceChip(
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 16,
+            color: isSelected ? Colors.white : theme.colorScheme.primary,
+          ),
+          const SizedBox(width: 6),
+          Text(label),
+        ],
+      ),
+      selected: isSelected,
+      onSelected: (selected) {
+        if (selected) {
+          widget.onChangeTheme(mode);
+          setModalState(() {});
+        }
+      },
+      selectedColor: theme.colorScheme.primary,
+      backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.05),
+      labelStyle: TextStyle(
+        color: isSelected ? Colors.white : (theme.brightness == Brightness.dark ? Colors.white70 : Colors.black87),
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        fontSize: 12,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: isSelected ? Colors.transparent : theme.colorScheme.primary.withValues(alpha: 0.2),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHistoryDayRow(DateTime date, Map<String, dynamic> record) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    final weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final weekdayLabel = weekdays[date.weekday - 1];
+    final dateLabel = '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}';
+
+    return GestureDetector(
+      onTap: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => NamazHistorySheet(uid: widget.user.uid),
+        ).then((_) => _loadUserData());
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF2C1A23) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.01),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            )
+          ],
+          border: Border.all(
+            color: theme.colorScheme.primary.withValues(alpha: 0.05),
+          ),
+        ),
+        child: Row(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  weekdayLabel,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                Text(
+                  dateLabel,
+                  style: const TextStyle(color: Colors.grey, fontSize: 11),
+                ),
+              ],
+            ),
+            const Spacer(),
+            // 5 color dots representing Fajr, Dhuhr, Asr, Maghrib, Isha
+            Row(
+              children: ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'].map((p) {
+                final status = record[p] ?? 'Upcoming';
+                Color color = Colors.grey;
+                if (status == 'Attended') color = Colors.green;
+                if (status == 'Qaza') color = Colors.orange;
+                if (status == 'Not Attended') color = Colors.red;
+                if (status == 'Upcoming') color = Colors.blue;
+                
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  child: Container(
+                    width: 14,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: color,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -739,210 +762,58 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       ),
                     ),
                   ),
+                  
                   NamazDashboard(uid: widget.user.uid),
                   
-                  // Conversation Screen
+                  // Historical Activity Dashboard
                   Expanded(
                     child: Container(
-                      margin: const EdgeInsets.only(top: 8.0),
+                      margin: const EdgeInsets.only(top: 12.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                       decoration: BoxDecoration(
                         color: isDark ? const Color(0xFF1B0D13) : Colors.white.withValues(alpha: 0.6),
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(32.0),
                         ),
                       ),
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(32.0),
-                        ),
-                        child: ListView.builder(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.all(20.0),
-                          itemCount: _messages.length,
-                          itemBuilder: (context, index) {
-                            final msg = _messages[index];
-                            final isAlina = msg['isAlina'] as bool;
-                            
-                            return Align(
-                              alignment: isAlina ? Alignment.centerLeft : Alignment.centerRight,
-                              child: Container(
-                                margin: const EdgeInsets.only(bottom: 16.0),
-                                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                                constraints: BoxConstraints(
-                                  maxWidth: MediaQuery.of(context).size.width * 0.75,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isAlina
-                                      ? (isDark ? const Color(0xFF2E1922) : Colors.white)
-                                      : theme.colorScheme.primary,
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: const Radius.circular(20),
-                                    topRight: const Radius.circular(20),
-                                    bottomLeft: isAlina ? Radius.zero : const Radius.circular(20),
-                                    bottomRight: isAlina ? const Radius.circular(20) : Radius.zero,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.03),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 3),
-                                    )
-                                  ],
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      msg['text'],
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        color: isAlina
-                                            ? (isDark ? Colors.white70 : Colors.black87)
-                                            : Colors.white,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4.0),
-                                    Align(
-                                      alignment: Alignment.bottomRight,
-                                      child: Text(
-                                        msg['time'],
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: isAlina
-                                              ? (isDark ? Colors.white38 : Colors.black38)
-                                              : Colors.white60,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Last 7 Days Progress',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.colorScheme.primary,
                                 ),
                               ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                  
-                  // Quick prompts & Message Input
-                  Container(
-                    color: isDark ? const Color(0xFF1B0D13) : Colors.white.withValues(alpha: 0.6),
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: Column(
-                      children: [
-                        // Quick Prompt list
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              _buildQuickPrompt('Good morning! ☀️'),
-                              _buildQuickPrompt('I love you! ❤️'),
-                              _buildQuickPrompt('How is your day? 😊'),
-                              _buildQuickPrompt('I feel sad... 🥺'),
+                              Icon(Icons.calendar_month, size: 18, color: theme.colorScheme.primary),
                             ],
                           ),
-                        ),
-                        const SizedBox(height: 8.0),
-                        // Chat Text Field & Send Button
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: isDark ? const Color(0xFF2C1A23) : Colors.white,
-                                  borderRadius: BorderRadius.circular(30),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.04),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 2),
-                                    )
-                                  ],
-                                ),
-                                child: TextField(
-                                  controller: _messageController,
-                                  onSubmitted: (_) => _handleSendMessage(),
-                                  style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-                                  decoration: InputDecoration(
-                                    hintText: 'Talk to Alina...',
-                                    hintStyle: TextStyle(
-                                      color: isDark ? Colors.white30 : Colors.black38,
-                                    ),
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 20,
-                                      vertical: 14,
-                                    ),
-                                    border: InputBorder.none,
+                          const SizedBox(height: 12),
+                          Expanded(
+                            child: _last7DaysRecords.isEmpty
+                                ? const Center(child: Text('No historical logs yet.'))
+                                : ListView.builder(
+                                    itemCount: _last7DaysRecords.length,
+                                    padding: EdgeInsets.zero,
+                                    itemBuilder: (context, index) {
+                                      final dateKey = _last7DaysRecords.keys.elementAt(index);
+                                      final record = _last7DaysRecords[dateKey]!;
+                                      final date = DateTime.parse(dateKey);
+                                      return _buildHistoryDayRow(date, record);
+                                    },
                                   ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8.0),
-                            GestureDetector(
-                              onTap: _handleSendMessage,
-                              child: Container(
-                                height: 48,
-                                width: 48,
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.primary,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 3),
-                                    )
-                                  ],
-                                ),
-                                child: const Icon(
-                                  Icons.send,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
-      ),
-    );
-  }
-
-  Widget _buildQuickPrompt(String text) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
-    return Padding(
-      padding: const EdgeInsets.only(right: 8.0),
-      child: GestureDetector(
-        onTap: () {
-          _messageController.text = text;
-          _handleSendMessage();
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
-          decoration: BoxDecoration(
-            color: isDark
-                ? theme.colorScheme.primary.withValues(alpha: 0.15)
-                : theme.colorScheme.primary.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: theme.colorScheme.primary.withValues(alpha: 0.3),
-            ),
-          ),
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.primary,
-            ),
-          ),
-        ),
       ),
     );
   }
