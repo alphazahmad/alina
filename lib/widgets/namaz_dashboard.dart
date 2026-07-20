@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/namaz_service.dart';
 import '../screens/namaz_history_sheet.dart';
+import '../services/prayer_time_service.dart';
 
 class HijriDate {
   static String getTodayHijri() {
@@ -47,10 +48,12 @@ class HijriDate {
 
 class NamazDashboard extends StatefulWidget {
   final String uid;
+  final bool isEmbedded;
 
   const NamazDashboard({
     super.key,
     required this.uid,
+    this.isEmbedded = false,
   });
 
   @override
@@ -59,8 +62,10 @@ class NamazDashboard extends StatefulWidget {
 
 class _NamazDashboardState extends State<NamazDashboard> {
   final _namazService = NamazService();
+  final _prayerTimeService = PrayerTimeService();
   
   Map<String, dynamic> _todayRecord = {};
+  Map<String, DateTime> _todayPrayerTimes = {};
   bool _isLoading = true;
 
   @override
@@ -76,15 +81,26 @@ class _NamazDashboardState extends State<NamazDashboard> {
     });
     try {
       final record = await _namazService.getDayRecord(widget.uid, DateTime.now());
+      final times = await _prayerTimeService.getPrayerTimesForDate(DateTime.now());
       if (mounted) {
         setState(() {
           _todayRecord = record;
+          _todayPrayerTimes = times;
           _isLoading = false;
         });
       }
     } catch (e) {
       debugPrint('Error loading today namaz: $e');
     }
+  }
+
+  String _prayerTimeStr(String prayerKey) {
+    final dt = _todayPrayerTimes[prayerKey];
+    if (dt == null) return '--:--';
+    final hr = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
+    final min = dt.minute.toString().padLeft(2, '0');
+    final period = dt.hour >= 12 ? 'PM' : 'AM';
+    return '$hr:$min $period';
   }
 
   Future<void> _cyclePrayerStatus(String prayerKey) async {
@@ -128,7 +144,7 @@ class _NamazDashboardState extends State<NamazDashboard> {
     final gregorianDateStr = _getGregorianDateLabel();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: EdgeInsets.symmetric(horizontal: widget.isEmbedded ? 0.0 : 16.0, vertical: 8.0),
       child: Container(
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
@@ -260,7 +276,16 @@ class _NamazDashboardState extends State<NamazDashboard> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 2),
+            Text(
+              _prayerTimeStr(key),
+              style: TextStyle(
+                fontSize: 8.5,
+                color: Theme.of(context).brightness == Brightness.dark ? Colors.white60 : Colors.black54,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 4),
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(

@@ -235,7 +235,7 @@ class RoutineService {
     return task.repeatDays.contains(weekday);
   }
 
-  Future<List<RoutineTask>> getUnifiedTimetable(String uid, DateTime date, {String city = 'Islamabad'}) async {
+  Future<List<RoutineTask>> getUnifiedTimetable(String uid, DateTime date, {String city = 'Nagpur'}) async {
     final List<RoutineTask> unifiedList = [];
 
     // 1. Load User Routine Tasks active for date
@@ -249,7 +249,7 @@ class RoutineService {
     // 2. Auto-pull Namaz times calculated for current city
     try {
       _prayerService.setCity(city);
-      final prayerTimes = _prayerService.getPrayerTimesForDate(date);
+      final prayerTimes = await _prayerService.getPrayerTimesForDate(date);
       for (final entry in prayerTimes.entries) {
         final pName = entry.key;
         final dt = entry.value;

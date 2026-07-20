@@ -18,7 +18,7 @@ class _RoutineDashboardState extends State<RoutineDashboard> {
   final _routineService = RoutineService();
 
   DateTime _selectedDate = DateTime.now();
-  String _selectedCity = 'Islamabad';
+  String _selectedCity = 'Nagpur';
   String _activeFilter = 'All';
 
   List<RoutineTask> _timetableTasks = [];
@@ -168,7 +168,7 @@ class _RoutineDashboardState extends State<RoutineDashboard> {
                                     _loadTimetableData();
                                   }
                                 },
-                                items: ['Islamabad', 'Karachi', 'Lahore', 'Dhaka', 'Dubai', 'London', 'New York'].map((c) {
+                                items: ['Nagpur', 'Islamabad', 'Karachi', 'Lahore', 'Dhaka', 'Dubai', 'London', 'New York'].map((c) {
                                   return DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 12)));
                                 }).toList(),
                               ),

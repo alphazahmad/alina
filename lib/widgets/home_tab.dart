@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/namaz_dashboard.dart';
 
 class HomeTab extends StatefulWidget {
   final String uid;
@@ -35,6 +36,9 @@ class _HomeTabState extends State<HomeTab> {
       children: [
         // ─── Alina Hero Card ───────────────────────────────────────
         _buildAlinaHeroCard(theme, isDark),
+        const SizedBox(height: 12),
+        // ─── Namaz Tracker Widget ──────────────────────────────────
+        NamazDashboard(uid: widget.uid, isEmbedded: true),
       ],
     );
   }

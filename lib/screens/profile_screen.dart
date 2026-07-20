@@ -32,7 +32,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   final _nameController = TextEditingController();
   final _dobController = TextEditingController();
-  final _cityController = TextEditingController(text: 'Islamabad');
+  final _cityController = TextEditingController(text: 'Nagpur');
   final _bioController = TextEditingController();
 
   bool _isSaving = false;
@@ -104,7 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (data != null && mounted) {
         _nameController.text = data['name'] ?? '';
         _dobController.text = data['dob'] ?? '';
-        _cityController.text = data['city'] ?? 'Islamabad';
+        _cityController.text = data['city'] ?? 'Nagpur';
         _bioController.text = data['bio'] ?? '';
       }
     } catch (e) {
@@ -470,8 +470,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildCityDropdown(bool isDark, ThemeData theme) {
-    final cities = ['Islamabad', 'Karachi', 'Lahore', 'Dhaka', 'Dubai', 'London', 'New York'];
-    final currentCity = cities.contains(_cityController.text) ? _cityController.text : 'Islamabad';
+    final cities = ['Nagpur', 'Islamabad', 'Karachi', 'Lahore', 'Dhaka', 'Dubai', 'London', 'New York'];
+    final currentCity = cities.contains(_cityController.text) ? _cityController.text : 'Nagpur';
     return DropdownButtonFormField<String>(
       initialValue: currentCity,
       decoration: InputDecoration(

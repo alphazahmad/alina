@@ -21,7 +21,7 @@ class NamazService {
   }
 
   /// Generates the default state of a day based on whether it is in the past, today, or in the future.
-  Map<String, dynamic> _generateDefaultRecord(DateTime date) {
+  Future<Map<String, dynamic>> _generateDefaultRecord(DateTime date) async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final target = DateTime(date.year, date.month, date.day);
@@ -46,7 +46,7 @@ class NamazService {
     } else {
       // Today: dynamic based on current time
       for (final prayer in prayers) {
-        if (_prayerTimeService.hasPrayerPassed(prayer, date)) {
+        if (await _prayerTimeService.hasPrayerPassed(prayer, date)) {
           record[prayer] = 'Not Attended';
         } else {
           record[prayer] = 'Upcoming';
@@ -93,7 +93,7 @@ class NamazService {
     }
 
     if (data == null) {
-      return _generateDefaultRecord(date);
+      return await _generateDefaultRecord(date);
     }
 
     // Dynamic update for Today's upcoming prayers whose times have passed
@@ -101,7 +101,7 @@ class NamazService {
     if (date.year == now.year && date.month == now.month && date.day == now.day) {
       bool modified = false;
       for (final prayer in ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha']) {
-        if (data[prayer] == 'Upcoming' && _prayerTimeService.hasPrayerPassed(prayer, date)) {
+        if (data[prayer] == 'Upcoming' && await _prayerTimeService.hasPrayerPassed(prayer, date)) {
           data[prayer] = 'Not Attended';
           modified = true;
         }
