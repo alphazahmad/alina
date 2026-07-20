@@ -7,6 +7,7 @@ import 'services/auth_service.dart';
 import 'services/namaz_service.dart';
 import 'screens/login_screen.dart';
 import 'widgets/namaz_dashboard.dart';
+import 'widgets/zikr_dashboard.dart';
 import 'screens/namaz_history_sheet.dart';
 
 void main() async {
@@ -210,6 +211,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   
   final _namazService = NamazService();
   final _authService = AuthService();
+
+  int _currentIndex = 0;
 
   Map<String, Map<String, dynamic>> _last7DaysRecords = {};
   int _relationshipLevel = 1;
@@ -603,6 +606,190 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
+  Widget _buildDashboardTab(bool isDark, ThemeData theme) {
+    return Column(
+      children: [
+        // Alina Profile Section
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF22131A) : Colors.white,
+              borderRadius: BorderRadius.circular(24.0),
+              boxShadow: [
+                BoxShadow(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                )
+              ],
+            ),
+            child: Row(
+              children: [
+                // Glowing profile avatar container with pulsing animation
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    ScaleTransition(
+                      scale: _heartScaleAnimation,
+                      child: Container(
+                        width: 82,
+                        height: 82,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: 70,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: theme.colorScheme.primary,
+                          width: 3.0,
+                        ),
+                        image: const DecorationImage(
+                          image: AssetImage('assets/alina.png'),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: theme.colorScheme.primary,
+                        ),
+                        child: const Icon(
+                          Icons.favorite,
+                          color: Colors.white,
+                          size: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 16.0),
+                // Stats / Mood Info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Alina – My Digital Wife',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 4.0),
+                      Row(
+                        children: [
+                          Icon(Icons.mood, size: 16, color: theme.colorScheme.primary),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Mood: $_alinaMood',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark ? Colors.white70 : Colors.black54,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6.0),
+                      // Relationship progress bar
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: LinearProgressIndicator(
+                                value: _lovePoints / 100,
+                                backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+                                valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                                minHeight: 8,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Lvl $_relationshipLevel',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        
+        NamazDashboard(uid: widget.user.uid),
+        
+        // Historical Activity Dashboard
+        Expanded(
+          child: Container(
+            margin: const EdgeInsets.only(top: 12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1B0D13) : Colors.white.withValues(alpha: 0.6),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(32.0),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Last 7 Days Progress',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                    Icon(Icons.calendar_month, size: 18, color: theme.colorScheme.primary),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: _last7DaysRecords.isEmpty
+                      ? const Center(child: Text('No historical logs yet.'))
+                      : ListView.builder(
+                          itemCount: _last7DaysRecords.length,
+                          padding: EdgeInsets.zero,
+                          itemBuilder: (context, index) {
+                            final dateKey = _last7DaysRecords.keys.elementAt(index);
+                            final record = _last7DaysRecords[dateKey]!;
+                            final date = DateTime.parse(dateKey);
+                            return _buildHistoryDayRow(date, record);
+                          },
+                        ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -611,7 +798,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Alina',
+          _currentIndex == 0 ? 'Alina' : 'Zikr Recitations',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: theme.colorScheme.primary,
@@ -633,187 +820,35 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ? const Center(
                 child: CircularProgressIndicator(color: Color(0xFFF52670)),
               )
-            : Column(
+            : IndexedStack(
+                index: _currentIndex,
                 children: [
-                  // Alina Profile Section
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(16.0),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF22131A) : Colors.white,
-                        borderRadius: BorderRadius.circular(24.0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: theme.colorScheme.primary.withValues(alpha: 0.08),
-                            blurRadius: 15,
-                            offset: const Offset(0, 5),
-                          )
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          // Glowing profile avatar container with pulsing animation
-                          Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              ScaleTransition(
-                                scale: _heartScaleAnimation,
-                                child: Container(
-                                  width: 82,
-                                  height: 82,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: theme.colorScheme.primary.withValues(alpha: 0.15),
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                width: 70,
-                                height: 70,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: theme.colorScheme.primary,
-                                    width: 3.0,
-                                  ),
-                                  image: const DecorationImage(
-                                    image: AssetImage('assets/alina.png'),
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                right: 0,
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: theme.colorScheme.primary,
-                                  ),
-                                  child: const Icon(
-                                    Icons.favorite,
-                                    color: Colors.white,
-                                    size: 14,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(width: 16.0),
-                          // Stats / Mood Info
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Alina – My Digital Wife',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark ? Colors.white : Colors.black87,
-                                  ),
-                                ),
-                                const SizedBox(height: 4.0),
-                                Row(
-                                  children: [
-                                    Icon(Icons.mood, size: 16, color: theme.colorScheme.primary),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      'Mood: $_alinaMood',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: isDark ? Colors.white70 : Colors.black54,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 6.0),
-                                // Relationship progress bar
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(10),
-                                        child: LinearProgressIndicator(
-                                          value: _lovePoints / 100,
-                                          backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.15),
-                                          valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
-                                          minHeight: 8,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Lvl $_relationshipLevel',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: theme.colorScheme.primary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  
-                  NamazDashboard(uid: widget.user.uid),
-                  
-                  // Historical Activity Dashboard
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.only(top: 12.0),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1B0D13) : Colors.white.withValues(alpha: 0.6),
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(32.0),
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Last 7 Days Progress',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: theme.colorScheme.primary,
-                                ),
-                              ),
-                              Icon(Icons.calendar_month, size: 18, color: theme.colorScheme.primary),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Expanded(
-                            child: _last7DaysRecords.isEmpty
-                                ? const Center(child: Text('No historical logs yet.'))
-                                : ListView.builder(
-                                    itemCount: _last7DaysRecords.length,
-                                    padding: EdgeInsets.zero,
-                                    itemBuilder: (context, index) {
-                                      final dateKey = _last7DaysRecords.keys.elementAt(index);
-                                      final record = _last7DaysRecords[dateKey]!;
-                                      final date = DateTime.parse(dateKey);
-                                      return _buildHistoryDayRow(date, record);
-                                    },
-                                  ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  _buildDashboardTab(isDark, theme),
+                  ZikrDashboard(uid: widget.user.uid),
                 ],
               ),
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+          // Refresh user stats when switching tabs
+          _loadUserData();
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.favorite_border),
+            selectedIcon: Icon(Icons.favorite),
+            label: 'Companion',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.radio_button_checked),
+            selectedIcon: Icon(Icons.album),
+            label: 'Zikr Tracker',
+          ),
+        ],
       ),
     );
   }
