@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "252931953569",
+    "project_id": "digital-wife",
+    "storage_bucket": "digital-wife.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:252931953569:android:8e6fab6e935169895f31e0",
+        "android_client_info": {
+          "package_name": "org.anicomic.zara"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWLV2RXYYJIzW0yTUizcxKnuFV_ZEnu7Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
