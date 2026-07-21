@@ -69,7 +69,7 @@ class NamazService {
             .doc(uid)
             .collection('namaz')
             .doc(dateStr)
-            .get();
+            .get().timeout(const Duration(seconds: 2));
         if (doc.exists) {
           data = doc.data();
           if (data != null) {
@@ -152,7 +152,7 @@ class NamazService {
             .doc(uid)
             .collection('namaz_stats')
             .doc('summary')
-            .get();
+            .get().timeout(const Duration(seconds: 2));
         if (doc.exists) {
           data = doc.data();
           if (data != null) {

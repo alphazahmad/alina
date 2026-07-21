@@ -183,7 +183,7 @@ class FinanceService {
             .doc(uid)
             .collection('finance_transactions')
             .where('monthKey', isEqualTo: monthKey)
-            .get();
+            .get().timeout(const Duration(seconds: 2));
         list = query.docs.map((doc) => FinanceTransaction.fromMap(doc.data())).toList();
         // Cache locally
         for (final t in list) {
@@ -240,7 +240,7 @@ class FinanceService {
             .collection('users')
             .doc(uid)
             .collection('finance_debts')
-            .get();
+            .get().timeout(const Duration(seconds: 2));
         list = query.docs.map((doc) => DebtItem.fromMap(doc.data())).toList();
         // Cache locally
         for (final d in list) {
@@ -307,7 +307,7 @@ class FinanceService {
             .collection('users')
             .doc(uid)
             .collection('finance_recurring')
-            .get();
+            .get().timeout(const Duration(seconds: 2));
         list = query.docs.map((doc) => RecurringPayment.fromMap(doc.data())).toList();
         // Cache locally
         for (final r in list) {

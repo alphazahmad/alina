@@ -18,7 +18,7 @@ class _RoutineDashboardState extends State<RoutineDashboard> {
   final _routineService = RoutineService();
 
   DateTime _selectedDate = DateTime.now();
-  String _selectedCity = 'Nagpur';
+  final String _selectedCity = 'Nagpur';
   String _activeFilter = 'All';
 
   List<RoutineTask> _timetableTasks = [];
@@ -150,27 +150,25 @@ class _RoutineDashboardState extends State<RoutineDashboard> {
                               ],
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
                                 color: theme.colorScheme.primary.withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: DropdownButton<String>(
-                                value: _selectedCity,
-                                underline: const SizedBox(),
-                                dropdownColor: isDark ? const Color(0xFF121212) : Colors.white,
-                                icon: Icon(Icons.arrow_drop_down, color: theme.colorScheme.primary),
-                                onChanged: (newCity) {
-                                  if (newCity != null) {
-                                    setState(() {
-                                      _selectedCity = newCity;
-                                    });
-                                    _loadTimetableData();
-                                  }
-                                },
-                                items: ['Nagpur', 'Islamabad', 'Karachi', 'Lahore', 'Dhaka', 'Dubai', 'London', 'New York'].map((c) {
-                                  return DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 12)));
-                                }).toList(),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.location_on_rounded, color: theme.colorScheme.primary, size: 14),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    _selectedCity,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],

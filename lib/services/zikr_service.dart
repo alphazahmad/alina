@@ -137,7 +137,7 @@ class ZikrService {
             .collection('users')
             .doc(uid)
             .collection('counters')
-            .get();
+            .get().timeout(const Duration(seconds: 2));
         list = query.docs.map((doc) => ZikrCounter.fromMap(doc.data())).toList();
         // Cache them locally
         for (final c in list) {

@@ -150,7 +150,7 @@ class RoutineService {
             .collection('users')
             .doc(uid)
             .collection('routine_tasks')
-            .get();
+            .get().timeout(const Duration(seconds: 2));
 
         final remoteTasks = snap.docs.map((doc) => RoutineTask.fromMap(doc.data())).toList();
         // Cache locally

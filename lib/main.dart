@@ -320,26 +320,26 @@ class _HomeScreenState extends State<HomeScreen> {
                             onTap: () {/* TODO: new chat */},
                           ),
 
-                        // ── Profile icon (More/Wellness tab only) ───
-                        if (_currentIndex == 4)
-                          _buildHeaderIcon(
-                            Icons.person_outline_rounded,
-                            isDark,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => ProfileScreen(
-                                    uid: widget.user.uid,
-                                    email: widget.user.email,
-                                    themeMode: widget.themeMode,
-                                    onChangeTheme: widget.onChangeTheme,
-                                    isSandboxMode: AuthService().isSandboxMode,
-                                  ),
+                        // ── Profile icon (Always visible) ───────────
+                        const SizedBox(width: 8),
+                        _buildHeaderIcon(
+                          Icons.person_outline_rounded,
+                          isDark,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ProfileScreen(
+                                  uid: widget.user.uid,
+                                  email: widget.user.email,
+                                  themeMode: widget.themeMode,
+                                  onChangeTheme: widget.onChangeTheme,
+                                  isSandboxMode: AuthService().isSandboxMode,
                                 ),
-                              );
-                            },
-                          ),
+                              ),
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ),

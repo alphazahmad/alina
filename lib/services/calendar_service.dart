@@ -146,7 +146,7 @@ class CalendarService {
             .collection('users')
             .doc(uid)
             .collection('calendar_events')
-            .get();
+            .get().timeout(const Duration(seconds: 2));
 
         final remoteEvents = snap.docs.map((doc) => CalendarEvent.fromMap(doc.data())).toList();
         // Cache locally

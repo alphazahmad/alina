@@ -39,10 +39,7 @@ class PrayerTimeService {
   CityConfig get currentCity => _currentCity;
 
   void setCity(String cityName) {
-    _currentCity = cities.firstWhere(
-      (c) => c.name.toLowerCase() == cityName.toLowerCase(),
-      orElse: () => cities[0], // Default Nagpur
-    );
+    _currentCity = cities[0]; // Locked to Nagpur
   }
 
   /// Helper to get local cache file for a specific date and city.

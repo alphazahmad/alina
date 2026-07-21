@@ -160,7 +160,7 @@ class TodoService {
             .doc(uid)
             .collection('todos')
             .orderBy('createdAt', descending: true)
-            .get();
+            .get().timeout(const Duration(seconds: 2));
         list = snap.docs.map((d) => TodoItem.fromMap(d.data())).toList();
         for (final item in list) {
           await _sandboxSaveTodo(uid, item);

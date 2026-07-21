@@ -196,10 +196,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ? _nameController.text.trim()[0].toUpperCase()
         : widget.email[0].toUpperCase();
 
-    return _isLoading
-        ? const Center(child: CircularProgressIndicator())
-        : ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: const Text('Profile & Settings'),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
             children: [
               // ─── Avatar Section ──────────────────────────────────
               Center(
@@ -417,7 +424,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 }, theme),
               ]),
             ],
-          );
+          ),
+    );
   }
 
   Widget _buildSectionHeader(String title, IconData icon, ThemeData theme) {
@@ -470,23 +478,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildCityDropdown(bool isDark, ThemeData theme) {
-    final cities = ['Nagpur', 'Islamabad', 'Karachi', 'Lahore', 'Dhaka', 'Dubai', 'London', 'New York'];
-    final currentCity = cities.contains(_cityController.text) ? _cityController.text : 'Nagpur';
-    return DropdownButtonFormField<String>(
-      initialValue: currentCity,
+    _cityController.text = 'Nagpur';
+    return TextField(
+      controller: _cityController,
+      readOnly: true,
       decoration: InputDecoration(
-        labelText: 'City / Location',
+        labelText: 'City / Location (Locked)',
         prefixIcon: const Icon(Icons.location_on_outlined, size: 18),
+        suffixIcon: const Icon(Icons.lock_outline_rounded, size: 16, color: Colors.grey),
+        filled: true,
+        fillColor: Colors.transparent,
         contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.colorScheme.primary)),
       ),
-      dropdownColor: isDark ? const Color(0xFF121212) : Colors.white,
-      items: cities.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-      onChanged: (val) {
-        if (val != null) _cityController.text = val;
-      },
     );
   }
 

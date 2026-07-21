@@ -49,13 +49,9 @@ class AuthService {
     }
   }
 
-  Stream<AuthUser?> get onAuthStateChanged {
-    if (!isSandboxMode) {
-      return _authStreamController.stream;
-    } else {
-      // In sandbox mode, return stream with initial state and subsequent updates
-      return _authStreamController.stream;
-    }
+  Stream<AuthUser?> get onAuthStateChanged async* {
+    yield currentUser;
+    yield* _authStreamController.stream;
   }
 
   AuthUser? get currentUser {
