@@ -4,10 +4,12 @@ import '../services/prayer_time_service.dart';
 
 class NamazHistorySheet extends StatefulWidget {
   final String uid;
+  final DateTime? initialDate;
 
   const NamazHistorySheet({
     super.key,
     required this.uid,
+    this.initialDate,
   });
 
   @override
@@ -18,7 +20,7 @@ class _NamazHistorySheetState extends State<NamazHistorySheet> {
   final _namazService = NamazService();
   final _prayerTimeService = PrayerTimeService();
   
-  DateTime _selectedDate = DateTime.now();
+  late DateTime _selectedDate;
   Map<String, dynamic> _dayRecord = {};
   Map<String, dynamic> _statsSummary = {};
   
@@ -28,6 +30,7 @@ class _NamazHistorySheetState extends State<NamazHistorySheet> {
   @override
   void initState() {
     super.initState();
+    _selectedDate = widget.initialDate ?? DateTime.now();
     _loadStats();
     _loadDayRecord();
   }

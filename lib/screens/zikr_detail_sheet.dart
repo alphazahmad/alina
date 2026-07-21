@@ -258,6 +258,165 @@ class _ZikrDetailSheetState extends State<ZikrDetailSheet> {
     }
   }
 
+  Future<void> _showEditCounterConfigDialog() async {
+    final nameController = TextEditingController(text: _counter.name);
+    final targetController = TextEditingController(text: _counter.targetValue.toString());
+    final dailyCountController = TextEditingController(text: _counter.dailyCount.toString());
+    final monthlyCountController = TextEditingController(text: _counter.monthlyCount.toString());
+    final lifetimeCountController = TextEditingController(text: _counter.lifetimeCount.toString());
+
+    bool hasTarget = _counter.hasTarget;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        final theme = Theme.of(context);
+        final isDark = theme.brightness == Brightness.dark;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              title: Text(
+                'Edit Zikr Settings',
+                style: TextStyle(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextField(
+                      controller: nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Counter Name',
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLength: 30,
+                    ),
+                    const SizedBox(height: 12),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Set Daily Target Limit', style: TextStyle(fontWeight: FontWeight.bold)),
+                        Switch(
+                          value: hasTarget,
+                          onChanged: (val) {
+                            setDialogState(() {
+                              hasTarget = val;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+
+                    if (hasTarget) ...[
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: targetController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Daily Target Count',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ],
+                    const Divider(height: 24),
+                    const Text('Edit Recitation Counts', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: dailyCountController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: "Today's Count",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: monthlyCountController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: "This Month's Count",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: lifetimeCountController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: "Lifetime Count",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () {
+                    if (nameController.text.trim().isEmpty) return;
+                    Navigator.of(context).pop(true);
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (confirm == true) {
+      final newName = nameController.text.trim();
+      final newTargetVal = hasTarget ? (int.tryParse(targetController.text.trim()) ?? 100) : 0;
+      final newDaily = int.tryParse(dailyCountController.text.trim()) ?? 0;
+      final newMonthly = int.tryParse(monthlyCountController.text.trim()) ?? 0;
+      final newLifetime = int.tryParse(lifetimeCountController.text.trim()) ?? 0;
+
+      final now = DateTime.now();
+      final todayStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+
+      setState(() {
+        _counter = ZikrCounter(
+          id: _counter.id,
+          name: newName,
+          iconName: _counter.iconName,
+          hasTarget: hasTarget,
+          targetValue: newTargetVal,
+          isPinned: _counter.isPinned,
+          dailyCount: newDaily,
+          monthlyCount: newMonthly,
+          lifetimeCount: newLifetime,
+          lastUpdatedDate: _counter.lastUpdatedDate.isEmpty ? todayStr : _counter.lastUpdatedDate,
+          lastUpdatedMonth: _counter.lastUpdatedMonth,
+          currentMonthLogs: Map<String, int>.from(_counter.currentMonthLogs),
+        );
+
+        _counter.currentMonthLogs[todayStr] = newDaily;
+        
+        _renderedLogs = _counter.currentMonthLogs;
+        _renderedTotal = _counter.monthlyCount;
+      });
+
+      await _zikrService.saveCounter(widget.uid, _counter);
+      widget.onDeleteOrUpdate();
+    }
+  }
+
   IconData _getIconData(String name) {
     switch (name) {
       case 'mosque': return Icons.mosque;
@@ -350,6 +509,11 @@ class _ZikrDetailSheetState extends State<ZikrDetailSheet> {
                       ),
                     ],
                   ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  color: theme.colorScheme.primary,
+                  onPressed: _showEditCounterConfigDialog,
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),

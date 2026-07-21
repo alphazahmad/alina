@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/namaz_service.dart';
+import '../screens/namaz_history_sheet.dart';
 
 /// A dedicated Namaz attendance calendar.
 /// - Green day  = all 5 namaaz attended OR qaza (completed)
@@ -414,43 +415,62 @@ class _NamazCalendarWidgetState extends State<NamazCalendarWidget> {
 
       final doneCount = (isFuture || isBeforeStart) ? -1 : _getDoneCount(dateKey);
       final bgColor = _dayColor(doneCount, theme, isDark);
+      final isClickable = !isFuture && !isBeforeStart;
 
       cells.add(
-        Container(
-          margin: const EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            color: bgColor == Colors.transparent ? Colors.transparent : bgColor.withValues(alpha: 0.2),
-            shape: BoxShape.circle,
-            border: isToday
-                ? Border.all(color: theme.colorScheme.primary, width: 2)
-                : (doneCount >= 0 ? Border.all(color: bgColor.withValues(alpha: 0.6), width: 1) : null),
-          ),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '$d',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
-                    color: isToday
-                        ? theme.colorScheme.primary
-                        : (isFuture || isBeforeStart)
-                            ? Colors.grey.shade400
-                            : (isDark ? Colors.white : Colors.black87),
-                  ),
-                ),
-                if (doneCount >= 0 && doneCount < 5)
+        GestureDetector(
+          onTap: isClickable
+              ? () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => NamazHistorySheet(
+                      uid: widget.uid,
+                      initialDate: date,
+                    ),
+                  ).then((_) {
+                    _loadMonthData();
+                    _loadStats();
+                  });
+                }
+              : null,
+          child: Container(
+            margin: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              color: bgColor == Colors.transparent ? Colors.transparent : bgColor.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+              border: isToday
+                  ? Border.all(color: theme.colorScheme.primary, width: 2)
+                  : (doneCount >= 0 ? Border.all(color: bgColor.withValues(alpha: 0.6), width: 1) : null),
+            ),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
                   Text(
-                    '$doneCount/5',
+                    '$d',
                     style: TextStyle(
-                      fontSize: 8,
-                      color: isDark ? Colors.white54 : Colors.grey.shade600,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
+                      color: isToday
+                          ? theme.colorScheme.primary
+                          : (isFuture || isBeforeStart)
+                              ? Colors.grey.shade400
+                              : (isDark ? Colors.white : Colors.black87),
                     ),
                   ),
-              ],
+                  if (doneCount >= 0 && doneCount < 5)
+                    Text(
+                      '$doneCount/5',
+                      style: TextStyle(
+                        fontSize: 8,
+                        color: isDark ? Colors.white54 : Colors.grey.shade600,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ),
