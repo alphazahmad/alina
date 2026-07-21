@@ -728,7 +728,7 @@ class _HomeTabState extends State<HomeTab> {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF141414) : Colors.white,
+          color: isDark ? Colors.black : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: color.withValues(alpha: 0.12),

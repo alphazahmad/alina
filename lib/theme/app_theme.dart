@@ -14,11 +14,11 @@ class AppColors {
   static const primaryDark = Color(0xFFD41E60);
 
   // Surfaces
-  static const surfaceLight = Color(0xFFF6F3F5);
-  static const surfaceDark = Color(0xFF080808);
+  static const surfaceLight = Color(0xFFFFFFFF);
+  static const surfaceDark = Color(0xFF000000);
   static const cardLight = Color(0xFFFFFFFF);
-  static const cardDark = Color(0xFF141414);
-  static const cardDarkElevated = Color(0xFF1C1C1C);
+  static const cardDark = Color(0xFF000000);
+  static const cardDarkElevated = Color(0xFF0A0A0A);
 
   // Accents
   static const income = Color(0xFF34C759);
@@ -28,8 +28,8 @@ class AppColors {
   static const warning = Color(0xFFFF3B30);
 
   // Gradients
-  static const heroGradientLight = [Color(0xFFFFF0F4), Color(0xFFFCE4EC), Color(0xFFF8F5F7)];
-  static const heroGradientDark = [Color(0xFF1A0A10), Color(0xFF140810), Color(0xFF0A0A0A)];
+  static const heroGradientLight = [Color(0xFFFFFFFF), Color(0xFFFFF0F4), Color(0xFFFFFFFF)];
+  static const heroGradientDark = [Color(0xFF000000), Color(0xFF0D0206), Color(0xFF000000)];
   static const primaryGradient = [Color(0xFFF52670), Color(0xFFFF6B9D)];
   static const incomeGradient = [Color(0xFF34C759), Color(0xFF30D5C8)];
   static const expenseGradient = [Color(0xFFFF9500), Color(0xFFFF6B6B)];
@@ -94,11 +94,23 @@ class AppShadows {
 class AppDecoration {
   AppDecoration._();
 
-  /// Standard Bento card — neumorphic soft card
   static BoxDecoration bentoCard(bool isDark) => BoxDecoration(
     color: isDark ? AppColors.cardDark : AppColors.cardLight,
     borderRadius: BorderRadius.circular(24),
-    boxShadow: AppShadows.softCard(isDark),
+    border: Border.all(
+      color: isDark
+          ? Colors.white.withValues(alpha: 0.1)
+          : Colors.black.withValues(alpha: 0.05),
+      width: 1.2,
+    ),
+    boxShadow: [
+      BoxShadow(
+        color: (isDark ? Colors.black : Colors.grey)
+            .withValues(alpha: isDark ? 0.4 : 0.02),
+        blurRadius: 16,
+        offset: const Offset(0, 4),
+      ),
+    ],
   );
 
   /// Glassmorphism card
@@ -128,14 +140,15 @@ class AppDecoration {
   /// Floating navigation bar
   static BoxDecoration floatingNav(bool isDark) => BoxDecoration(
     color: isDark
-        ? const Color(0xFF1A1A1A).withValues(alpha: 0.92)
-        : Colors.white.withValues(alpha: 0.92),
+        ? const Color(0xFF0C0C0C).withValues(alpha: 0.85)
+        : Colors.white.withValues(alpha: 0.85),
     borderRadius: BorderRadius.circular(28),
     boxShadow: AppShadows.floatingNav(isDark),
     border: Border.all(
       color: isDark
-          ? Colors.white.withValues(alpha: 0.06)
-          : Colors.black.withValues(alpha: 0.04),
+          ? Colors.white.withValues(alpha: 0.1)
+          : Colors.black.withValues(alpha: 0.05),
+      width: 1.2,
     ),
   );
 }
@@ -240,14 +253,14 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFFF0ECEE),
+        fillColor: const Color(0xFFF7F7F7),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: Colors.black.withValues(alpha: 0.05)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: Colors.black.withValues(alpha: 0.05)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -305,14 +318,14 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFF1C1C1C),
+        fillColor: const Color(0xFF0C0C0C),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),

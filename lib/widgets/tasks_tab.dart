@@ -30,7 +30,7 @@ class _TasksTabState extends State<TasksTab> {
           child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF121212) : Colors.white,
+              color: isDark ? Colors.black : Colors.white,
               borderRadius: BorderRadius.circular(20),
               border:
                   Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.12)),
@@ -217,8 +217,8 @@ class _TodoListViewState extends State<_TodoListView> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx2, setLocal) {
-          final bg = isDark ? const Color(0xFF0F0F0F) : Colors.white;
-          final cardBg = isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF8F8F8);
+          final bg = isDark ? Colors.black : Colors.white;
+          final cardBg = isDark ? const Color(0xFF0A0A0A) : const Color(0xFFF8F8F8);
 
           // ── Add-subtask mini field ──────────────────────────────
           final subCtrl = TextEditingController();
@@ -904,7 +904,7 @@ class _TodoListViewState extends State<_TodoListView> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF131313) : Colors.white,
+          color: isDark ? Colors.black : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: todo.isCompleted

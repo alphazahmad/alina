@@ -329,7 +329,7 @@ class _SubTabBar extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF141414) : Colors.white,
+          color: isDark ? Colors.black : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
         ),
@@ -708,7 +708,7 @@ class _MealTimeline extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF141414) : Colors.white,
+        color: isDark ? Colors.black : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.green.withValues(alpha: 0.1)),
       ),
@@ -776,7 +776,7 @@ class _MealCard extends StatelessWidget {
     } else {
       borderColor =
           (isDark ? Colors.white12 : Colors.grey.shade200);
-      bgColor = isDark ? const Color(0xFF141414) : Colors.white;
+      bgColor = isDark ? Colors.black : Colors.white;
       statusEmoji = '';
       statusColor = Colors.transparent;
     }
@@ -1161,7 +1161,7 @@ class _MoonArcCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF141414) : Colors.white,
+        color: isDark ? Colors.black : Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: const Color(0xFF3949AB).withValues(alpha: 0.2)),
         boxShadow: AppShadows.softCard(isDark),
@@ -1269,7 +1269,7 @@ class _SleepTimeline extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF141414) : Colors.white,
+        color: isDark ? Colors.black : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFF3949AB).withValues(alpha: 0.1)),
       ),
@@ -1325,7 +1325,7 @@ class _WeeklyMoonView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF141414) : Colors.white,
+        color: isDark ? Colors.black : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFF3949AB).withValues(alpha: 0.1)),
       ),
